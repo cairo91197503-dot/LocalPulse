@@ -31,6 +31,17 @@ fun SettingsScreen(
     val summaryLanguage by viewModel.summaryLanguage.collectAsState()
     val isOffline by viewModel.isOffline.collectAsState()
 
+    // Connection states
+    val isFacebookConnected by viewModel.isFacebookConnected.collectAsState()
+    val isInstagramConnected by viewModel.isInstagramConnected.collectAsState()
+    val isWhatsAppConnected by viewModel.isWhatsAppConnected.collectAsState()
+
+    // Notification toggles
+    val notificationGmb by viewModel.notificationGmb.collectAsState()
+    val notificationFacebook by viewModel.notificationFacebook.collectAsState()
+    val notificationInstagram by viewModel.notificationInstagram.collectAsState()
+    val notificationWhatsApp by viewModel.notificationWhatsApp.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -112,6 +123,271 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Multiplatform Integrations Card
+        Text(
+            text = "Integração Multiplataforma",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                // 1. Google connection (primary, always active)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "Google",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Google Meu Negócio",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Conectado como $businessNameInput",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                                )
+                            )
+                        }
+                    }
+                    Text(
+                        text = "Ativo",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.secondary
+                        ),
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                // 2. Facebook connection
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF1877F2).copy(alpha = 0.08f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Facebook",
+                                tint = Color(0xFF1877F2),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Facebook Business",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = if (isFacebookConnected) "Conectado como Página Oficial" else "Não integrado",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                                )
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            if (isFacebookConnected) viewModel.disconnectFacebook()
+                            else viewModel.connectFacebook()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isFacebookConnected) MaterialTheme.colorScheme.error.copy(alpha = 0.1f) else Color(0xFF1877F2),
+                            contentColor = if (isFacebookConnected) MaterialTheme.colorScheme.error else Color.White
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                        modifier = Modifier.height(36.dp).testTag("facebook_integration_toggle_btn")
+                    ) {
+                        Text(
+                            text = if (isFacebookConnected) "Desconectar" else "Conectar",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                // 3. Instagram connection
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFE1306C).copy(alpha = 0.08f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.StarBorder,
+                                contentDescription = "Instagram",
+                                tint = Color(0xFFE1306C),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Instagram Professional",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = if (isInstagramConnected) "Conectado como @${businessNameInput.replace(" ", "").lowercase()}" else "Não integrado",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                                )
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            if (isInstagramConnected) viewModel.disconnectInstagram()
+                            else viewModel.connectInstagram()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isInstagramConnected) MaterialTheme.colorScheme.error.copy(alpha = 0.1f) else Color(0xFFE1306C),
+                            contentColor = if (isInstagramConnected) MaterialTheme.colorScheme.error else Color.White
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                        modifier = Modifier.height(36.dp).testTag("instagram_integration_toggle_btn")
+                    ) {
+                        Text(
+                            text = if (isInstagramConnected) "Desconectar" else "Conectar",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                // 4. WhatsApp Business (ready for future)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF25D366).copy(alpha = 0.08f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Chat,
+                                contentDescription = "WhatsApp",
+                                tint = Color(0xFF25D366),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "WhatsApp Business",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
+                                        .padding(horizontal = 4.dp, vertical = 1.dp)
+                                ) {
+                                    Text(
+                                        text = "Futuro",
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
+                            Text(
+                                text = if (isWhatsAppConnected) "Lembretes ativos via WhatsApp" else "Não integrado",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                                )
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            if (isWhatsAppConnected) viewModel.disconnectWhatsApp()
+                            else viewModel.connectWhatsApp()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isWhatsAppConnected) MaterialTheme.colorScheme.error.copy(alpha = 0.1f) else Color(0xFF25D366),
+                            contentColor = if (isWhatsAppConnected) MaterialTheme.colorScheme.error else Color.White
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                        modifier = Modifier.height(36.dp).testTag("whatsapp_integration_toggle_btn")
+                    ) {
+                        Text(
+                            text = if (isWhatsAppConnected) "Remover" else "Configurar",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         // Alerta Frequency Setup
         Text(
             text = "Preferências de Alertas de Reputação",
@@ -148,6 +424,145 @@ fun SettingsScreen(
                     onSelect = { viewModel.setAlertFrequency("semanal") },
                     testTag = "alert_freq_weekly"
                 )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Multiplatform Notification Channels Toggles
+        Text(
+            text = "Lembretes de Postagem Multiplataforma",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                // 1. Google Meu Negócio Reminder
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Lembrar no Google Meu Negócio",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Notificar se ficar mais de 5 dias sem publicar",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
+                    Switch(
+                        checked = notificationGmb,
+                        onCheckedChange = { viewModel.toggleNotificationGmb() },
+                        modifier = Modifier.testTag("notification_toggle_gmb")
+                    )
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                // 2. Facebook Reminder
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Lembrar no Facebook Connect",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Alerta para postar na página oficial conectada",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
+                    Switch(
+                        checked = notificationFacebook,
+                        onCheckedChange = { viewModel.toggleNotificationFacebook() },
+                        modifier = Modifier.testTag("notification_toggle_fb")
+                    )
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                // 3. Instagram Reminder
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Lembrar no Instagram Feed/Stories",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Avisar para manter o engajamento visual ativo",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
+                    Switch(
+                        checked = notificationInstagram,
+                        onCheckedChange = { viewModel.toggleNotificationInstagram() },
+                        modifier = Modifier.testTag("notification_toggle_ig")
+                    )
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                // 4. WhatsApp Reminder
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Lembrar no WhatsApp Business Catalog",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Lembrete de novas promoções via catálogo de produtos",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
+                    Switch(
+                        checked = notificationWhatsApp,
+                        onCheckedChange = { viewModel.toggleNotificationWhatsApp() },
+                        modifier = Modifier.testTag("notification_toggle_wa")
+                    )
+                }
             }
         }
 

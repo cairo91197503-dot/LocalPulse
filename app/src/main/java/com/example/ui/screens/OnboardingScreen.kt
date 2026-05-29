@@ -9,8 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -158,42 +157,106 @@ fun OnboardingScreen(
                         )
                     }
                 } else {
-                    // Step 3: Social Google Sign-In button
-                    Button(
-                        onClick = { viewModel.loginWithGoogle() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .testTag("google_login_button"),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                    // Step 3: Multi-Platform / Social login options
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Drawing G logo simulation within standard styled button
-                        Canvas(modifier = Modifier.size(20.dp)) {
-                            // Simple G sketch
-                            drawArc(
-                                color = Color.White,
-                                startAngle = 45f,
-                                sweepAngle = 270f,
-                                useCenter = false,
-                                style = Stroke(width = 4.dp.toPx())
+                        // Title/Callout helper
+                        Text(
+                            text = "Por favor, conecte para continuar:",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                                textAlign = TextAlign.Center
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 4.dp)
+                        )
+
+                        // 1. Google connection
+                        Button(
+                            onClick = { viewModel.loginWithGoogle() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                                .testTag("google_login_button"),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
                             )
-                            drawRect(
-                                color = Color.White,
-                                topLeft = Offset(size.width * 0.45f, size.height * 0.45f),
-                                size = Size(size.width * 0.5f, size.height * 0.12f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "Selo Google",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Entrar com Google",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
                             )
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Entrar com Google",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
+
+                        // 2. Facebook connection
+                        Button(
+                            onClick = { viewModel.loginWithFacebook() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                                .testTag("facebook_login_button"),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF1877F2),
+                                contentColor = Color.White
                             )
-                        )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Selo Facebook",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Entrar com Facebook",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
+                            )
+                        }
+
+                        // 3. Instagram connection
+                        Button(
+                            onClick = { viewModel.loginWithInstagram() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                                .testTag("instagram_login_button"),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFE1306C),
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.StarBorder,
+                                contentDescription = "Selo Instagram",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Entrar com Instagram",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
+                            )
+                        }
                     }
                 }
 

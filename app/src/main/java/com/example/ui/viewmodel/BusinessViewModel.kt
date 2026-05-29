@@ -40,6 +40,32 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
     private val _isOffline = MutableStateFlow(false)
     val isOffline: StateFlow<Boolean> = _isOffline.asStateFlow()
 
+    // Social Media Connection States
+    private val _isGoogleConnected = MutableStateFlow(true) // Google is default
+    val isGoogleConnected: StateFlow<Boolean> = _isGoogleConnected.asStateFlow()
+
+    private val _isFacebookConnected = MutableStateFlow(false)
+    val isFacebookConnected: StateFlow<Boolean> = _isFacebookConnected.asStateFlow()
+
+    private val _isInstagramConnected = MutableStateFlow(false)
+    val isInstagramConnected: StateFlow<Boolean> = _isInstagramConnected.asStateFlow()
+
+    private val _isWhatsAppConnected = MutableStateFlow(false)
+    val isWhatsAppConnected: StateFlow<Boolean> = _isWhatsAppConnected.asStateFlow()
+
+    // Multiplatform Notification Preferences
+    private val _notificationGmb = MutableStateFlow(true)
+    val notificationGmb: StateFlow<Boolean> = _notificationGmb.asStateFlow()
+
+    private val _notificationFacebook = MutableStateFlow(true)
+    val notificationFacebook: StateFlow<Boolean> = _notificationFacebook.asStateFlow()
+
+    private val _notificationInstagram = MutableStateFlow(true)
+    val notificationInstagram: StateFlow<Boolean> = _notificationInstagram.asStateFlow()
+
+    private val _notificationWhatsApp = MutableStateFlow(true)
+    val notificationWhatsApp: StateFlow<Boolean> = _notificationWhatsApp.asStateFlow()
+
     // Navigation Tab
     private val _currentTab = MutableStateFlow("home")
     val currentTab: StateFlow<String> = _currentTab.asStateFlow()
@@ -197,6 +223,7 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
 
     // Google Sign-In & Load reviews
     fun loginWithGoogle() {
+        _isGoogleConnected.value = true
         _isLoggedIn.value = true
         _isOnboarded.value = true
         viewModelScope.launch {
@@ -216,6 +243,56 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
                 _isLoading.value = false
             }
         }
+    }
+
+    fun loginWithFacebook() {
+        _isFacebookConnected.value = true
+        loginWithGoogle()
+    }
+
+    fun loginWithInstagram() {
+        _isInstagramConnected.value = true
+        loginWithGoogle()
+    }
+
+    fun connectFacebook() {
+        _isFacebookConnected.value = true
+    }
+
+    fun disconnectFacebook() {
+        _isFacebookConnected.value = false
+    }
+
+    fun connectInstagram() {
+        _isInstagramConnected.value = true
+    }
+
+    fun disconnectInstagram() {
+        _isInstagramConnected.value = false
+    }
+
+    fun connectWhatsApp() {
+        _isWhatsAppConnected.value = true
+    }
+
+    fun disconnectWhatsApp() {
+        _isWhatsAppConnected.value = false
+    }
+
+    fun toggleNotificationGmb() {
+        _notificationGmb.value = !_notificationGmb.value
+    }
+
+    fun toggleNotificationFacebook() {
+        _notificationFacebook.value = !_notificationFacebook.value
+    }
+
+    fun toggleNotificationInstagram() {
+        _notificationInstagram.value = !_notificationInstagram.value
+    }
+
+    fun toggleNotificationWhatsApp() {
+        _notificationWhatsApp.value = !_notificationWhatsApp.value
     }
 
     private fun checkInactivityNotification() {

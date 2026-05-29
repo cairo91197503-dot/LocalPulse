@@ -36,6 +36,11 @@ fun PostsScreen(viewModel: BusinessViewModel) {
     val isGenerating by viewModel.isGeneratingIdeas.collectAsState()
     val isOffline by viewModel.isOffline.collectAsState()
 
+    // Collect social media connection states
+    val isFacebookConnected by viewModel.isFacebookConnected.collectAsState()
+    val isInstagramConnected by viewModel.isInstagramConnected.collectAsState()
+    val isWhatsAppConnected by viewModel.isWhatsAppConnected.collectAsState()
+
     var showEditor by remember { mutableStateOf(false) }
     var selectedIdeaForEditor by remember { mutableStateOf<PostIdea?>(null) }
     
@@ -72,7 +77,7 @@ fun PostsScreen(viewModel: BusinessViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Postagens GMB",
+                text = "Postagens Multiplataforma",
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -334,7 +339,9 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                     },
                     modifier = Modifier.testTag("publish_post_confirm_btn")
                 ) {
-                    Text("Publicar agora no Google")
+                    Text(
+                        text = if (isFacebookConnected || isInstagramConnected) "Publicar Multiplataforma" else "Publicar agora no Google"
+                    )
                 }
             },
             dismissButton = {
@@ -390,6 +397,107 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                         shape = RoundedCornerShape(8.dp),
                         maxLines = 6
                     )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Publicar simultaneamente em:",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    var postToFacebook by remember { mutableStateOf(isFacebookConnected) }
+                    var postToInstagram by remember { mutableStateOf(isInstagramConnected) }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // 1. Google connection (always active)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1.1f)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
+                                .padding(4.dp)
+                        ) {
+                            Checkbox(
+                                checked = true,
+                                onCheckedChange = { },
+                                enabled = false
+                            )
+                            Text(
+                                text = "Google",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1
+                            )
+                        }
+
+                        // 2. Facebook
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1.1f)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(if (postToFacebook) Color(0xFF1877F2).copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface)
+                                .clickable(enabled = isFacebookConnected) { postToFacebook = !postToFacebook }
+                                .padding(4.dp)
+                        ) {
+                            Checkbox(
+                                checked = postToFacebook,
+                                onCheckedChange = { postToFacebook = it },
+                                enabled = isFacebookConnected,
+                                colors = CheckboxDefaults.colors(checkedColor = Color(0xFF1877F2))
+                            )
+                            Text(
+                                text = "Facebook",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isFacebookConnected) Color(0xFF1877F2) else Color.Gray,
+                                maxLines = 1
+                            )
+                        }
+
+                        // 3. Instagram
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1.1f)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(if (postToInstagram) Color(0xFFE1306C).copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface)
+                                .clickable(enabled = isInstagramConnected) { postToInstagram = !postToInstagram }
+                                .padding(4.dp)
+                        ) {
+                            Checkbox(
+                                checked = postToInstagram,
+                                onCheckedChange = { postToInstagram = it },
+                                enabled = isInstagramConnected,
+                                colors = CheckboxDefaults.colors(checkedColor = Color(0xFFE1306C))
+                            )
+                            Text(
+                                text = "Instagram",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isInstagramConnected) Color(0xFFE1306C) else Color.Gray,
+                                maxLines = 1
+                            )
+                        }
+                    }
+
+                    if (!isFacebookConnected || !isInstagramConnected) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "💡 Vá em Configurações para integrar Facebook e Instagram e ativar a postagem simultânea.",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                            lineHeight = 13.sp
+                        )
+                    }
                 }
             },
             shape = RoundedCornerShape(16.dp)

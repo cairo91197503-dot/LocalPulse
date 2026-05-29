@@ -75,8 +75,8 @@ O ID do aplicativo já foi refinado de forma exclusiva nas suas configurações 
 
 ### 2. Versão do Aplicativo (Incremento)
 Controle de versão configurado em `./app/build.gradle.kts`:
-- `versionCode = 2`
-- `versionName = "1.0.1"`
+- `versionCode = 3`
+- `versionName = "1.0.2"`
 *Lembre-se de incrementar estes valores a cada nova build enviada ao painel.*
 
 ### 3. Permissões de Rede

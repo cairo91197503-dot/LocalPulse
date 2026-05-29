@@ -32,6 +32,16 @@ fun MainApp(
     val selectedReview by viewModel.selectedReview.collectAsState()
     val showInactivityDialog by viewModel.showInactivityDialog.collectAsState()
 
+    // Multiplatform state flows
+    val notificationGmb by viewModel.notificationGmb.collectAsState()
+    val notificationFacebook by viewModel.notificationFacebook.collectAsState()
+    val notificationInstagram by viewModel.notificationInstagram.collectAsState()
+    val notificationWhatsApp by viewModel.notificationWhatsApp.collectAsState()
+
+    val isFacebookConnected by viewModel.isFacebookConnected.collectAsState()
+    val isInstagramConnected by viewModel.isInstagramConnected.collectAsState()
+    val isWhatsAppConnected by viewModel.isWhatsAppConnected.collectAsState()
+
     var showPrivacyPolicyDialog by remember { mutableStateOf(false) }
 
     if (!isLoggedIn) {
@@ -184,12 +194,58 @@ fun MainApp(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     Text(
-                        text = "Nenhuma atualização foi feita no seu Google Meu Negócio nos últimos 5 dias. Postagens frequentes aumentam as visualizações em até 40%!\n\nSugestão rápida de IA para postar hoje:",
+                        text = "Manter suas mídias integradas atualizadas aumenta o seu engajamento local em até 40%! Confira abaixo quais canais de postagem estão recebendo este alerta e a sugestão de publicação gerada por IA:",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
                         )
                     )
+
                     Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Canais de Postagem Configurados:",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        ReminderStatusRow(
+                            name = "Google Meu Negócio",
+                            isConnected = true,
+                            isNotificationEnabled = notificationGmb,
+                            brandColor = MaterialTheme.colorScheme.primary
+                        )
+                        ReminderStatusRow(
+                            name = "Facebook Page Connect",
+                            isConnected = isFacebookConnected,
+                            isNotificationEnabled = notificationFacebook,
+                            brandColor = Color(0xFF1877F2)
+                        )
+                        ReminderStatusRow(
+                            name = "Instagram Feed / Stories",
+                            isConnected = isInstagramConnected,
+                            isNotificationEnabled = notificationInstagram,
+                            brandColor = Color(0xFFE1306C)
+                        )
+                        ReminderStatusRow(
+                            name = "WhatsApp Business (Catálogo)",
+                            isConnected = isWhatsAppConnected,
+                            isNotificationEnabled = notificationWhatsApp,
+                            brandColor = Color(0xFF25D366)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Sugestão Inteligente do Gemini IA:",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
@@ -265,6 +321,51 @@ fun MainApp(
                 }
             },
             shape = RoundedCornerShape(16.dp)
+        )
+    }
+}
+
+@Composable
+fun ReminderStatusRow(
+    name: String,
+    isConnected: Boolean,
+    isNotificationEnabled: Boolean,
+    brandColor: Color
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(6.dp))
+            .background(brandColor.copy(alpha = 0.05f))
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .background(if (isNotificationEnabled) brandColor else Color.Gray)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = name,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+        
+        Text(
+            text = when {
+                !isNotificationEnabled -> "Silenciado"
+                isConnected -> "Ativo e Integrado"
+                else -> "Ativo (Lembrete sem login)"
+            },
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (isNotificationEnabled) brandColor else Color.Gray
         )
     }
 }
