@@ -17,6 +17,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,6 +63,106 @@ fun OnboardingScreen(
     val registerBusinessName by viewModel.registerBusinessName.collectAsState()
 
     val scrollState = rememberScrollState()
+    var showForgotPasswordDialog by remember { mutableStateOf(false) }
+
+    // Recover password dialog flow
+    if (showForgotPasswordDialog) {
+        var emailInput by remember { mutableStateOf("") }
+        var isLinkSent by remember { mutableStateOf(false) }
+
+        AlertDialog(
+            onDismissRequest = { showForgotPasswordDialog = false },
+            title = {
+                Text(
+                    text = "Recuperar Senha",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            },
+            text = {
+                Column {
+                    if (!isLinkSent) {
+                        Text(
+                            text = "Insira seu e-mail cadastrado ou número de celular para receber o link de recuperação de conta.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                        OutlinedTextField(
+                            value = emailInput,
+                            onValueChange = { text -> emailInput = text },
+                            label = { Text("E-mail ou Celular") },
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("forgot_password_input"),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                    } else {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Sucesso",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Instruções enviadas com sucesso!",
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Se o dado inserido estiver cadastrado, você receberá um link de recuperação em instantes.",
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                if (!isLinkSent) {
+                    Button(
+                        onClick = {
+                            if (emailInput.isNotEmpty()) {
+                                isLinkSent = true
+                            }
+                        },
+                        enabled = emailInput.isNotBlank(),
+                        modifier = Modifier.testTag("forgot_password_submit_btn")
+                    ) {
+                        Text("Enviar Link")
+                    }
+                } else {
+                    Button(
+                        onClick = { showForgotPasswordDialog = false },
+                        modifier = Modifier.testTag("forgot_password_close_btn")
+                    ) {
+                        Text("Fechar")
+                    }
+                }
+            },
+            dismissButton = {
+                if (!isLinkSent) {
+                    TextButton(
+                        onClick = { showForgotPasswordDialog = false },
+                        modifier = Modifier.testTag("forgot_password_cancel_btn")
+                    ) {
+                        Text("Cancelar")
+                    }
+                }
+            },
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -76,7 +179,7 @@ fun OnboardingScreen(
         ) {
             // Header Logo
             Image(
-                painter = rememberAsyncImagePainter(model = com.example.R.drawable.img_app_logo_1780065100739),
+                painter = painterResource(com.example.R.drawable.img_app_logo_1780065100739),
                 contentDescription = "Logo PulsePersonal",
                 modifier = Modifier
                     .height(65.dp)
@@ -85,81 +188,24 @@ fun OnboardingScreen(
                 contentScale = androidx.compose.ui.layout.ContentScale.Fit
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Adaptive Card illustration representing the profile kind dynamically!
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(96.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                if (accountType == "PERSONAL") {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.04f))
-                            .padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Pessoal",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                "Perfil Pessoal Ativo",
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                "Para criadores, influenciadores e uso pessoal",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.04f))
-                            .padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Business,
-                            contentDescription = "Comercial",
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                "Perfil Comercial / Empresa",
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                            Text(
-                                "Para marcas, empresas e negócios locais",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                }
-            }
-
             Spacer(modifier = Modifier.height(16.dp))
+
+            // Subcaption for a clean layout
+            Text(
+                text = "Seja bem-vindo ao PulsePersonal",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "Insira seus dados ou conecte com redes sociais para gerenciar sua reputação e público local",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Mode Selector Tabs (Entrar vs Criar Conta)
             Row(
@@ -202,7 +248,7 @@ fun OnboardingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Error Display if present
             if (loginError != null) {
@@ -216,103 +262,6 @@ fun OnboardingScreen(
                     textAlign = TextAlign.Center
                 )
             }
-
-            // ACCOUNT TYPE SELECTOR CARDS ("Para você" vs "Para sua empresa")
-            Text(
-                text = "Selecione o tipo de conta:",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp)
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                // Personal Option
-                Card(
-                    onClick = { viewModel.setAccountType("PERSONAL") },
-                    modifier = Modifier
-                        .weight(1.1f)
-                        .height(82.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (accountType == "PERSONAL") 
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) 
-                        else 
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    border = androidx.compose.foundation.BorderStroke(
-                        width = if (accountType == "PERSONAL") 2.dp else 1.dp,
-                        color = if (accountType == "PERSONAL") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Pessoal",
-                            tint = if (accountType == "PERSONAL") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Para Você (Pessoal)",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (accountType == "PERSONAL") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-
-                // Business Option
-                Card(
-                    onClick = { viewModel.setAccountType("BUSINESS") },
-                    modifier = Modifier
-                        .weight(1.1f)
-                        .height(82.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (accountType == "BUSINESS") 
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) 
-                        else 
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    border = androidx.compose.foundation.BorderStroke(
-                        width = if (accountType == "BUSINESS") 2.dp else 1.dp,
-                        color = if (accountType == "BUSINESS") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Business,
-                            contentDescription = "Comercial / Empresa",
-                            tint = if (accountType == "BUSINESS") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Sua Empresa (Comercial)",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (accountType == "BUSINESS") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             // Dynamic Form Sheet based on Selected Tab
             if (!isRegisterMode) {
@@ -347,12 +296,31 @@ fun OnboardingScreen(
                         shape = RoundedCornerShape(12.dp)
                     )
 
+                    // FORGOT PASSWORD LINK
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Text(
+                            text = "Esqueceu a senha?",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = TextDecoration.Underline
+                            ),
+                            modifier = Modifier
+                                .clickable { showForgotPasswordDialog = true }
+                                .padding(vertical = 4.dp)
+                                .testTag("forgot_password_link_btn")
+                        )
+                    }
+
                     Button(
                         onClick = { viewModel.performLogin() },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
-                            .padding(top = 8.dp)
+                            .padding(top = 4.dp)
                             .testTag("login_submit_btn"),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -417,17 +385,13 @@ fun OnboardingScreen(
                         shape = RoundedCornerShape(12.dp)
                     )
 
-                    // Profile Handle or Corporate store name input dynamically styled!
-                    val profileLabel = if (accountType == "PERSONAL") "Nome do seu perfil / Identificador" else "Razão Social / Nome da sua Empresa"
-                    val profileHint = if (accountType == "PERSONAL") "Ex: @meuperfil" else "Ex: Padaria Bella Vista"
-
                     OutlinedTextField(
                         value = registerBusinessName,
                         onValueChange = { viewModel.setRegisterBusinessName(it) },
-                        label = { Text(profileLabel) },
-                        placeholder = { Text(profileHint) },
+                        label = { Text("Nome ou Identificador (Pessoal/Comercial)") },
+                        placeholder = { Text("Ex: @meuperfil ou Padaria Bella Vista") },
                         singleLine = true,
-                        leadingIcon = { Icon(if (accountType == "PERSONAL") Icons.Default.AccountCircle else Icons.Default.Storefront, "Nome") },
+                        leadingIcon = { Icon(Icons.Default.AccountCircle, "Nome") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("register_business_field"),
@@ -448,7 +412,7 @@ fun OnboardingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Integration divider
             Row(
@@ -489,7 +453,7 @@ fun OnboardingScreen(
                 ) {
                     Icon(imageVector = Icons.Default.Star, contentDescription = "Google", modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Entrar com o Google Extendido", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text("Entrar com o Google", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
 
                 Row(
@@ -539,7 +503,7 @@ fun OnboardingScreen(
                 ) {
                     Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "TikTok", modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Entrar com o TikTok (Pessoal)", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text("Entrar com o TikTok", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
 

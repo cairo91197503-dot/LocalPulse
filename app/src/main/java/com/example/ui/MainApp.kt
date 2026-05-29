@@ -28,6 +28,7 @@ fun MainApp(
     viewModel: BusinessViewModel = viewModel()
 ) {
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+    val hasSelectedAccountType by viewModel.hasSelectedAccountType.collectAsState()
     val currentTab by viewModel.currentTab.collectAsState()
     val selectedReview by viewModel.selectedReview.collectAsState()
     val showInactivityDialog by viewModel.showInactivityDialog.collectAsState()
@@ -52,8 +53,100 @@ fun MainApp(
             viewModel = viewModel,
             onShowPrivacyPolicy = { showPrivacyPolicyDialog = true }
         )
+    } else if (!hasSelectedAccountType) {
+        // Show Account Type selection upon first login
+        AccountTypeSelectionScreen(
+            viewModel = viewModel
+        )
     } else {
         // App Main Shell Scaffold
+        val userPlan by viewModel.userPlan.collectAsState()
+        val showPremiumUpgradeDialog by viewModel.showPremiumUpgradeDialog.collectAsState()
+
+        if (showPremiumUpgradeDialog) {
+            AlertDialog(
+                onDismissRequest = { viewModel.dismissPremiumUpgradeDialog() },
+                title = {
+                    Text(
+                        text = "Limite de Contas Atingido",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                text = {
+                    Column {
+                        Text(
+                            text = "Você está utilizando a versão Gratuita do PulsePersonal, que permite conectar no máximo duas contas simultâneas (incluindo o perfil do Google).\n\nAssine um de nossos planos para sincronizar todas as mídias sociais e remover propagandas:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // PRO PLAN SELECT CARD
+                        Card(
+                            onClick = {
+                                viewModel.setUserPlan("PRO")
+                                viewModel.dismissPremiumUpgradeDialog()
+                            },
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)),
+                            shape = RoundedCornerShape(12.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Plano PRO", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                    Text("R$ 9,90", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Sincronize as contas disponíveis e remova propagandas.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // EXPERT+ PLAN SELECT CARD
+                        Card(
+                            onClick = {
+                                viewModel.setUserPlan("EXPERT_PLUS")
+                                viewModel.dismissPremiumUpgradeDialog()
+                            },
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.05f)),
+                            shape = RoundedCornerShape(12.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.secondary),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Plano EXPERT+", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                                    Text("R$ 19,90/mês", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Agendador inteligente de posts, piloto automático total e sem anúncios.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = { viewModel.dismissPremiumUpgradeDialog() },
+                        modifier = Modifier.testTag("dismiss_premium_modal")
+                    ) {
+                        Text("Depois")
+                    }
+                },
+                shape = RoundedCornerShape(16.dp)
+            )
+        }
+
         Scaffold(
             bottomBar = {
                 // Main Bottom Navigation Bar
@@ -108,40 +201,50 @@ fun MainApp(
                 }
             }
         ) { innerPadding ->
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
                     .background(MaterialTheme.colorScheme.background)
             ) {
-                // If nested in review detail, display detail screen regardless of tab (Reviews list master-detail sub-navigation pattern)
-                val activeReview = selectedReview
-                if (activeReview != null) {
-                    ReviewDetailScreen(
-                        review = activeReview,
-                        viewModel = viewModel,
-                        onBack = { viewModel.selectReview(null) }
-                    )
-                } else {
-                    // Switch top level content sheets
-                    when (currentTab) {
-                        "home" -> HomeScreen(
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    // If nested in review detail, display detail screen regardless of tab (Reviews list master-detail sub-navigation pattern)
+                    val activeReview = selectedReview
+                    if (activeReview != null) {
+                        ReviewDetailScreen(
+                            review = activeReview,
                             viewModel = viewModel,
-                            onNavigateToReviews = { viewModel.changeTab("reviews") },
-                            onNavigateToDetail = { viewModel.selectReview(it) }
+                            onBack = { viewModel.selectReview(null) }
                         )
-                        "reviews" -> ReviewsScreen(
-                            viewModel = viewModel,
-                            onNavigateToDetail = { viewModel.selectReview(it) }
-                        )
-                        "posts" -> PostsScreen(
-                            viewModel = viewModel
-                        )
-                        "settings" -> SettingsScreen(
-                            viewModel = viewModel,
-                            onShowPrivacyPolicy = { showPrivacyPolicyDialog = true }
-                        )
+                    } else {
+                        // Switch top level content sheets
+                        when (currentTab) {
+                            "home" -> HomeScreen(
+                                viewModel = viewModel,
+                                onNavigateToReviews = { viewModel.changeTab("reviews") },
+                                onNavigateToDetail = { viewModel.selectReview(it) }
+                            )
+                            "reviews" -> ReviewsScreen(
+                                viewModel = viewModel,
+                                onNavigateToDetail = { viewModel.selectReview(it) }
+                            )
+                            "posts" -> PostsScreen(
+                                viewModel = viewModel
+                            )
+                            "settings" -> SettingsScreen(
+                                viewModel = viewModel,
+                                onShowPrivacyPolicy = { showPrivacyPolicyDialog = true }
+                            )
+                        }
                     }
+                }
+
+                if (userPlan == "FREE") {
+                    AdBanner()
                 }
             }
         }
@@ -375,5 +478,65 @@ fun ReminderStatusRow(
             fontWeight = FontWeight.Bold,
             color = if (isNotificationEnabled) brandColor else Color.Gray
         )
+    }
+}
+
+@Composable
+fun AdBanner() {
+    var adIndex by remember { mutableStateOf(0) }
+    val ads = listOf(
+        "💡 Remova as propagandas e sincronize contas sem limites no plano PRO por apenas R$ 9,90!",
+        "🚀 Mude para o plano EXPERT+ por R$ 19,90/mês para agendar posts e usar o piloto automático inteligente!",
+        "⚡ PulsePersonal Premium: Desbloqueie agendamento, automação completa e retire todos os anúncios!",
+        "✨ Dica: Use a Inteligência Artificial do app para otimizar suas ideias de mídias sociais!"
+    )
+    
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(6000)
+            adIndex = (adIndex + 1) % ads.size
+        }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .testTag("simulated_banner_ad"),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+            contentColor = MaterialTheme.colorScheme.primary
+        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.secondary)
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = "ANÚNCIO",
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondary
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = ads[adIndex],
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }

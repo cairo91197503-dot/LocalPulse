@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.MainApp
 import com.example.ui.theme.LocalPulseTheme
+import com.example.ui.viewmodel.BusinessViewModel
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,7 +24,9 @@ class MainActivity : ComponentActivity() {
           modifier = Modifier.fillMaxSize(),
           color = MaterialTheme.colorScheme.background
         ) {
-          MainApp()
+          val factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+          val viewModel: BusinessViewModel = viewModel(factory = factory)
+          MainApp(viewModel = viewModel)
         }
       }
     }

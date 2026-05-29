@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.PostAdd
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,11 +44,17 @@ fun PostsScreen(viewModel: BusinessViewModel) {
     val isWhatsAppConnected by viewModel.isWhatsAppConnected.collectAsState()
     val isTikTokConnected by viewModel.isTikTokConnected.collectAsState()
 
+    val userPlan by viewModel.userPlan.collectAsState()
+    val isAutopilotActive by viewModel.isAutopilotActive.collectAsState()
+
     var showEditor by remember { mutableStateOf(false) }
     var selectedIdeaForEditor by remember { mutableStateOf<PostIdea?>(null) }
     
     var editorTitle by remember { mutableStateOf("") }
     var editorContent by remember { mutableStateOf("") }
+    
+    var isScheduledPost by remember { mutableStateOf(false) }
+    var scheduledDateText by remember { mutableStateOf("2026-06-05 15:00") }
 
     // Synchronize to the editor when an idea is selected
     LaunchedEffect(selectedIdeaForEditor) {
@@ -55,6 +62,8 @@ fun PostsScreen(viewModel: BusinessViewModel) {
         if (idea != null) {
             editorTitle = idea.title
             editorContent = idea.content
+            // Reset scheduling when opening different suggestions
+            isScheduledPost = false
             showEditor = true
         }
     }
@@ -149,6 +158,94 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                         modifier = Modifier.testTag("last_post_date_profile")
                     )
                 }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // EXPERT+ ONLY: O App Faz Tudo / Piloto Automático Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = if (isAutopilotActive) MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f)
+                                 else MaterialTheme.colorScheme.surface
+            ),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                if (isAutopilotActive) MaterialTheme.colorScheme.secondary
+                else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f)
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                if (isAutopilotActive) MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
+                                else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = "Piloto Automático",
+                            tint = if (isAutopilotActive) MaterialTheme.colorScheme.secondary else Color.Gray
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Piloto Automático (O App Faz Tudo)",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = if (isAutopilotActive) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onBackground
+                            )
+                            if (userPlan != "EXPERT_PLUS") {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.11f))
+                                        .padding(horizontal = 4.dp, vertical = 1.dp)
+                                ) {
+                                    Text(
+                                        text = "EXPERT+",
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+                        Text(
+                            text = if (isAutopilotActive) "🤖 Modo automático ativo! A IA está planejando, agendando e postando mídias sociais de forma inteligente por você."
+                                   else "Deixe que a Inteligência Artificial gerencie todo o agendamento e engajamento das suas contas.",
+                            fontSize = 11.sp,
+                            lineHeight = 15.sp,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+                
+                Switch(
+                    checked = isAutopilotActive,
+                    onCheckedChange = { active ->
+                        viewModel.setAutopilotActive(active)
+                    },
+                    modifier = Modifier.testTag("autopilot_pilot_mode_switch")
+                )
             }
         }
 
@@ -432,6 +529,31 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                                     )
                                 )
                             }
+                            if (post.scheduledTime != null) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Schedule,
+                                        contentDescription = "Agendado",
+                                        tint = MaterialTheme.colorScheme.secondary,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Agendado para: ${post.scheduledTime}",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
+
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = post.content,
@@ -455,14 +577,18 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                 Button(
                     onClick = {
                         if (editorTitle.isNotBlank() && editorContent.isNotBlank()) {
-                            viewModel.submitPost(editorTitle, editorContent)
+                            viewModel.submitPost(
+                                title = editorTitle,
+                                content = editorContent,
+                                scheduledTime = if (isScheduledPost) scheduledDateText else null
+                            )
                             showEditor = false
                         }
                     },
                     modifier = Modifier.testTag("publish_post_confirm_btn")
                 ) {
                     Text(
-                        text = if (isFacebookConnected || isInstagramConnected || isTikTokConnected) "Publicar Multiplataforma" else "Publicar agora no Perfil"
+                        text = if (isScheduledPost) "Agendar Publicação" else if (isFacebookConnected || isInstagramConnected || isTikTokConnected) "Publicar Multiplataforma" else "Publicar agora no Perfil"
                     )
                 }
             },
@@ -519,6 +645,85 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                         shape = RoundedCornerShape(8.dp),
                         maxLines = 6
                     )
+
+                    // Scheduling Section (Agendar posts - Premium Expert+ exclusive)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(if (isScheduledPost) MaterialTheme.colorScheme.primary.copy(alpha = 0.04f) else Color.Transparent)
+                            .clickable {
+                                if (userPlan == "EXPERT_PLUS") {
+                                    isScheduledPost = !isScheduledPost
+                                } else {
+                                    viewModel.showPremiumUpgrade()
+                                }
+                            }
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                            Icon(
+                                imageVector = Icons.Default.Schedule,
+                                contentDescription = "Agendamento",
+                                tint = if (isScheduledPost) MaterialTheme.colorScheme.primary else Color.Gray,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "Agendar Publicação",
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                    if (userPlan != "EXPERT_PLUS") {
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Icon(
+                                            imageVector = Icons.Default.Lock,
+                                            contentDescription = "Bloqueado",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
+                                }
+                                Text(
+                                    text = "Escolha um dia e horário futuros para postagem",
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
+
+                        Switch(
+                            checked = isScheduledPost,
+                            onCheckedChange = { checked ->
+                                if (userPlan == "EXPERT_PLUS") {
+                                    isScheduledPost = checked
+                                } else {
+                                    viewModel.showPremiumUpgrade()
+                                }
+                            },
+                            modifier = Modifier.testTag("scheduler_post_switch")
+                        )
+                    }
+
+                    if (isScheduledPost && userPlan == "EXPERT_PLUS") {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = scheduledDateText,
+                            onValueChange = { scheduledDateText = it },
+                            label = { Text("Data/Hora do Agendamento") },
+                            placeholder = { Text("Ex: AAAA-MM-DD HH:MM") },
+                            leadingIcon = { Icon(imageVector = Icons.Default.Schedule, contentDescription = "Data") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("scheduler_date_input"),
+                            shape = RoundedCornerShape(8.dp),
+                            singleLine = true
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(

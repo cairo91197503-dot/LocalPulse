@@ -22,7 +22,8 @@ data class Post(
     val title: String,
     val content: String,
     val createTime: String,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    val scheduledTime: String? = null
 )
 
 @Entity(tableName = "business_profile")

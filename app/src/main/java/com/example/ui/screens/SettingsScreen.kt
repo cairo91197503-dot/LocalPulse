@@ -27,6 +27,8 @@ fun SettingsScreen(
     onShowPrivacyPolicy: () -> Unit
 ) {
     val businessNameInput by viewModel.businessNameInput.collectAsState()
+    val accountType by viewModel.accountType.collectAsState()
+    val userPlan by viewModel.userPlan.collectAsState()
     val alertFrequency by viewModel.alertFrequency.collectAsState()
     val summaryLanguage by viewModel.summaryLanguage.collectAsState()
     val isOffline by viewModel.isOffline.collectAsState()
@@ -121,6 +123,101 @@ fun SettingsScreen(
                         )
                     )
                 }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Account Type Toggle Card (Saves instantly, no layout buttons)
+        Text(
+            text = "Tipo de Conta",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                setupPreferenceRow(
+                    label = "Pessoal",
+                    description = "Para criadores de conteúdo, influenciadores e uso pessoal",
+                    isSelected = accountType == "PERSONAL",
+                    onSelect = { viewModel.setAccountType("PERSONAL") },
+                    testTag = "settings_account_type_personal"
+                )
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                setupPreferenceRow(
+                    label = "Comercial / Empresa",
+                    description = "Para marcas, negócios locais, comércio e corporações",
+                    isSelected = accountType == "BUSINESS",
+                    onSelect = { viewModel.setAccountType("BUSINESS") },
+                    testTag = "settings_account_type_business"
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Plano de Assinatura Selector Card
+        Text(
+            text = "Plano de Assinatura",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                setupPreferenceRow(
+                    label = "Versão Gratuita",
+                    description = "Limite de no máximo 2 contas simultâneas, com propagandas",
+                    isSelected = userPlan == "FREE",
+                    onSelect = { viewModel.setUserPlan("FREE") },
+                    testTag = "settings_plan_free"
+                )
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                setupPreferenceRow(
+                    label = "Versão PRO – R$ 9,90",
+                    description = "Sem propagandas, com sincronização de todas as contas disponíveis",
+                    isSelected = userPlan == "PRO",
+                    onSelect = { viewModel.setUserPlan("PRO") },
+                    testTag = "settings_plan_pro"
+                )
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                setupPreferenceRow(
+                    label = "Versão Expert+ – R$ 19,90 / mês",
+                    description = "Diferencial de agendar posts, piloto automático e o app faz tudo!",
+                    isSelected = userPlan == "EXPERT_PLUS",
+                    onSelect = { viewModel.setUserPlan("EXPERT_PLUS") },
+                    testTag = "settings_plan_expert"
+                )
             }
         }
 

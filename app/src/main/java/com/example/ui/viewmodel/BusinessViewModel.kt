@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -36,8 +37,60 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
     private val _isOnboarded = MutableStateFlow(sharedPrefs.getBoolean("is_logged_in", false))
     val isOnboarded: StateFlow<Boolean> = _isOnboarded.asStateFlow()
 
+    private val _hasSelectedAccountType = MutableStateFlow(sharedPrefs.getBoolean("has_selected_account_type", false))
+    val hasSelectedAccountType: StateFlow<Boolean> = _hasSelectedAccountType.asStateFlow()
+
     private val _accountType = MutableStateFlow(sharedPrefs.getString("account_type", "PERSONAL") ?: "PERSONAL")
     val accountType: StateFlow<String> = _accountType.asStateFlow()
+
+    private val _userPlan = MutableStateFlow(sharedPrefs.getString("user_plan", "FREE") ?: "FREE")
+    val userPlan: StateFlow<String> = _userPlan.asStateFlow()
+
+    private val _showPremiumUpgradeDialog = MutableStateFlow(false)
+    val showPremiumUpgradeDialog: StateFlow<Boolean> = _showPremiumUpgradeDialog.asStateFlow()
+
+    fun setUserPlan(plan: String) {
+        _userPlan.value = plan
+        sharedPrefs.edit().putString("user_plan", plan).apply()
+        // If they downgrade from Expert+, make sure autoclave pilot is turned off as well
+        if (plan != "EXPERT_PLUS") {
+            _isAutopilotActive.value = false
+            sharedPrefs.edit().putBoolean("is_autopilot_active", false).apply()
+        }
+    }
+
+    private val _isAutopilotActive = MutableStateFlow(sharedPrefs.getBoolean("is_autopilot_active", false))
+    val isAutopilotActive: StateFlow<Boolean> = _isAutopilotActive.asStateFlow()
+
+    fun setAutopilotActive(active: Boolean) {
+        if (_userPlan.value == "EXPERT_PLUS") {
+            _isAutopilotActive.value = active
+            sharedPrefs.edit().putBoolean("is_autopilot_active", active).apply()
+        } else {
+            _showPremiumUpgradeDialog.value = true
+        }
+    }
+
+    fun dismissPremiumUpgradeDialog() {
+        _showPremiumUpgradeDialog.value = false
+    }
+
+    fun showPremiumUpgrade() {
+        _showPremiumUpgradeDialog.value = true
+    }
+
+    fun canAddAccount(): Boolean {
+        if (_userPlan.value != "FREE") return true
+        
+        var activeCount = 0
+        if (_isGoogleConnected.value) activeCount++
+        if (_isFacebookConnected.value) activeCount++
+        if (_isInstagramConnected.value) activeCount++
+        if (_isWhatsAppConnected.value) activeCount++
+        if (_isTikTokConnected.value) activeCount++
+        
+        return activeCount < 2
+    }
 
     private val _isRegisterMode = MutableStateFlow(false)
     val isRegisterMode: StateFlow<Boolean> = _isRegisterMode.asStateFlow()
@@ -303,6 +356,24 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
     fun setAccountType(type: String) {
         _accountType.value = type
         sharedPrefs.edit().putString("account_type", type).apply()
+        // Save dynamically to business profile in DAO as well
+        viewModelScope.launch {
+            try {
+                // Read current profile, update and save
+                val currentProfile = repository.businessProfile.firstOrNull() ?: db.localPulseDao().getBusinessProfile().firstOrNull()
+                if (currentProfile != null) {
+                    val updatedProfile = currentProfile.copy(accountType = type)
+                    db.localPulseDao().saveBusinessProfile(updatedProfile)
+                }
+            } catch (e: Exception) {
+                // safe ignore in background
+            }
+        }
+    }
+
+    fun setHasSelectedAccountType(selected: Boolean) {
+        _hasSelectedAccountType.value = selected
+        sharedPrefs.edit().putBoolean("has_selected_account_type", selected).apply()
     }
 
     fun performLogin() {
@@ -443,7 +514,11 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun connectFacebook() {
-        _isFacebookConnected.value = true
+        if (canAddAccount()) {
+            _isFacebookConnected.value = true
+        } else {
+            _showPremiumUpgradeDialog.value = true
+        }
     }
 
     fun disconnectFacebook() {
@@ -451,7 +526,11 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun connectInstagram() {
-        _isInstagramConnected.value = true
+        if (canAddAccount()) {
+            _isInstagramConnected.value = true
+        } else {
+            _showPremiumUpgradeDialog.value = true
+        }
     }
 
     fun disconnectInstagram() {
@@ -459,7 +538,11 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun connectWhatsApp() {
-        _isWhatsAppConnected.value = true
+        if (canAddAccount()) {
+            _isWhatsAppConnected.value = true
+        } else {
+            _showPremiumUpgradeDialog.value = true
+        }
     }
 
     fun disconnectWhatsApp() {
@@ -467,7 +550,11 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun connectTikTok() {
-        _isTikTokConnected.value = true
+        if (canAddAccount()) {
+            _isTikTokConnected.value = true
+        } else {
+            _showPremiumUpgradeDialog.value = true
+        }
     }
 
     fun disconnectTikTok() {
@@ -506,6 +593,16 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
         _isOnboarded.value = false
         _onboardingStep.value = 0
         _currentTab.value = "home"
+        
+        _hasSelectedAccountType.value = false
+        _userPlan.value = "FREE"
+        _accountType.value = "PERSONAL"
+        sharedPrefs.edit()
+            .putBoolean("is_logged_in", false)
+            .putBoolean("has_selected_account_type", false)
+            .putString("account_type", "PERSONAL")
+            .putString("user_plan", "FREE")
+            .apply()
     }
 
     fun changeTab(tab: String) {
@@ -551,11 +648,11 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
     }
 
     // Create a new post from idea or editor
-    fun submitPost(title: String, content: String) {
+    fun submitPost(title: String, content: String, scheduledTime: String? = null) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                repository.createPost(title, content)
+                repository.createPost(title, content, scheduledTime = scheduledTime)
                 _lastPostDelayDetected.value = false // reset flag since user just posted!
                 _showInactivityDialog.value = false
             } catch (e: Exception) {

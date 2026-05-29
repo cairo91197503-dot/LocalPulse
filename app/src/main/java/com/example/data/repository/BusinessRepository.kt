@@ -183,13 +183,14 @@ class BusinessRepository(private val dao: LocalPulseDao) {
     }
 
     // Create a new post
-    suspend fun createPost(title: String, content: String, imageUrl: String? = null) = withContext(Dispatchers.IO) {
+    suspend fun createPost(title: String, content: String, imageUrl: String? = null, scheduledTime: String? = null) = withContext(Dispatchers.IO) {
         val newPost = Post(
             id = "user_post_${System.currentTimeMillis()}",
             title = title,
             content = content,
             imageUrl = imageUrl,
-            createTime = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+            createTime = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date()),
+            scheduledTime = scheduledTime
         )
         dao.insertPost(newPost)
 
