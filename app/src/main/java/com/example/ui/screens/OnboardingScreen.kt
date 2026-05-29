@@ -2,12 +2,14 @@ package com.example.ui.screens
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.res.painterResource
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -52,28 +54,16 @@ fun OnboardingScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header: App Logo & Title
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Storefront,
-                    contentDescription = "Logo LocalPulse",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "LocalPulse",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        letterSpacing = 1.sp
-                    )
-                )
-            }
+            // Header: App Widescreen Logo
+            Image(
+                painter = painterResource(id = com.example.R.drawable.img_app_logo_1780065100739),
+                contentDescription = "Logo LocalPulse",
+                modifier = Modifier
+                    .height(60.dp)
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                contentScale = androidx.compose.ui.layout.ContentScale.Fit
+            )
 
             // Slide content transition
             Box(
