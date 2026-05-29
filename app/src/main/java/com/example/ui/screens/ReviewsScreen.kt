@@ -8,7 +8,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MarkChatUnread
@@ -38,6 +41,7 @@ fun ReviewsScreen(
     val reviews by viewModel.filteredReviews.collectAsState()
     val activeFilter by viewModel.reviewFilter.collectAsState()
     val isOffline by viewModel.isOffline.collectAsState()
+    val isSimulationModeActive by viewModel.isSimulationModeActive.collectAsState()
 
     Column(
         modifier = Modifier
@@ -59,7 +63,7 @@ fun ReviewsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Avaliações GMB",
+                text = "Feedbacks do Perfil",
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -84,26 +88,141 @@ fun ReviewsScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         if (reviews.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            if (!isSimulationModeActive) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Icon(
                         imageVector = Icons.Default.MarkChatUnread,
-                        contentDescription = "Sem avaliações",
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                        contentDescription = "Central de Feedbacks",
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                         modifier = Modifier.size(64.dp)
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+
                     Text(
-                        text = "Nenhuma avaliação encontrada neste filtro.",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                        text = "REPUTAÇÃO REAL VAZIA / SEM DADOS",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
                         )
                     )
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "💡 O que esta tela faz?",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "A Central de Feedbacks serve para ler, filtrar e responder em lote todas as avaliações que seus clientes enviam nos seus canais oficiais integrados (como no Google Meu Negócio ou Meta Facebook Graph). Você também pode pedir ideias de respostas automáticas ao Gemini e enviá-las direto ao cliente.",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 20.sp
+                                )
+                            )
+                        }
+                    }
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "🔑 O que é necessário para obter dados reais?",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            
+                            Text(
+                                text = "1. Google Business Profile API",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "É necessário aprovar e cadastrar chaves no Google Cloud Console com acesso ativado ao My Business Account Management API, usando permissões de autenticação OAuth2.",
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)),
+                                modifier = Modifier.padding(bottom = 10.dp)
+                            )
+                            
+                            Text(
+                                text = "2. Facebook & Instagram API",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Crie uma Conta de Desenvolvedor no Meta for Developers e vincule o Login Empresarial Meta com escopos de leitura de avaliações de página (Page Reviews permissions).",
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)),
+                                modifier = Modifier.padding(bottom = 10.dp)
+                            )
+                            
+                            Text(
+                                text = "3. Chaves e Tokens",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Com as credenciais criadas, preencha as chaves e os Tokens de Acesso nas configurações de cada integração para que a sincronização ocorra em tempo real.",
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = { viewModel.setSimulationMode(true) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .testTag("activate_simulated_reviews_btn"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Ver dados simulados para teste (Demo)")
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.MarkChatUnread,
+                            contentDescription = "Sem feedbacks",
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Nenhum feedback encontrado neste filtro.",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
                 }
             }
         } else {
@@ -131,10 +250,10 @@ fun FilterChipsRow(
     onSelectFilter: (String) -> Unit
 ) {
     val filters = listOf(
-        Pair("ALL", "Todas"),
-        Pair("POSITIVE", "Positivas"),
-        Pair("NEGATIVE", "Negativas"),
-        Pair("UNREPLIED", "Não respondidas")
+        Pair("ALL", "Todos"),
+        Pair("POSITIVE", "Positivos"),
+        Pair("NEGATIVE", "Negativos"),
+        Pair("UNREPLIED", "Sem retorno")
     )
 
     Row(

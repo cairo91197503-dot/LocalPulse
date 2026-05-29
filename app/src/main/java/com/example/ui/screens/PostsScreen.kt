@@ -35,11 +35,13 @@ fun PostsScreen(viewModel: BusinessViewModel) {
     val suggestions by viewModel.postIdeas.collectAsState()
     val isGenerating by viewModel.isGeneratingIdeas.collectAsState()
     val isOffline by viewModel.isOffline.collectAsState()
+    val isSimulationModeActive by viewModel.isSimulationModeActive.collectAsState()
 
     // Collect social media connection states
     val isFacebookConnected by viewModel.isFacebookConnected.collectAsState()
     val isInstagramConnected by viewModel.isInstagramConnected.collectAsState()
     val isWhatsAppConnected by viewModel.isWhatsAppConnected.collectAsState()
+    val isTikTokConnected by viewModel.isTikTokConnected.collectAsState()
 
     var showEditor by remember { mutableStateOf(false) }
     var selectedIdeaForEditor by remember { mutableStateOf<PostIdea?>(null) }
@@ -132,7 +134,7 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = "Seu Perfil no Google Meu Negócio",
+                        text = "Seu Perfil Conectado",
                         style = MaterialTheme.typography.labelSmall.copy(
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
                             fontWeight = FontWeight.Bold
@@ -247,6 +249,38 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                     }
                 }
             }
+        } else if (!isSimulationModeActive) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.04f)),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "💡 Como funcionam as sugestões com IA?",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "O recomendador de conteúdo do LocalPulse utiliza inteligência artificial (Gemini) para ler os insights de sentimentos da sua empresa e planejar postagens integrando imagens sugeridas, hashtags prontas e chamadas diretas de venda.",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 18.sp
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "🔑 Para obter sugestões personalizadas do seu negócio real, primeiro sincronize avaliações verdadeiras de clientes ativando suas integrações de rede.",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -262,18 +296,106 @@ fun PostsScreen(viewModel: BusinessViewModel) {
         )
 
         if (posts.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Ainda não há postagens criadas pelo aplicativo.",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+            if (!isSimulationModeActive) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "💡 O que esta tela faz?",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "A ferramenta de Postagens Multiplataforma permite redigir, planejar e publicar de forma simultânea materiais de marketing, ofertas de produtos e comunicados urgentes diretamente no seu Google Meu Negócio, Facebook, Instagram e TikTok com 1 único toque.",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 18.sp
+                                )
+                            )
+                        }
+                    }
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "🔑 O que é necessário para obter dados de postagem ativa?",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            
+                            Text(
+                                text = "• Perfil Comercial no Instagram:",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Sua conta do Instagram deve ser cadastrada como Comercial ou de Criador, e estar devidamente vinculada a uma Página do Facebook.",
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)),
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            
+                            Text(
+                                text = "• Escopos de Escrita aprovados pela Meta:",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Seus tokens empresariais devem conter permissões ativas de publicação: 'pages_manage_posts' (para Facebook) e 'instagram_content_publish' (para fotos/vídeos no Instagram).",
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = { viewModel.setSimulationMode(true) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .testTag("activate_simulated_posts_btn"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Ver dados simulados para teste (Demo)")
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Ainda não há postagens criadas pelo aplicativo.",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                        )
                     )
-                )
+                }
             }
         } else {
             LazyColumn(
@@ -340,7 +462,7 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                     modifier = Modifier.testTag("publish_post_confirm_btn")
                 ) {
                     Text(
-                        text = if (isFacebookConnected || isInstagramConnected) "Publicar Multiplataforma" else "Publicar agora no Google"
+                        text = if (isFacebookConnected || isInstagramConnected || isTikTokConnected) "Publicar Multiplataforma" else "Publicar agora no Perfil"
                     )
                 }
             },
@@ -360,13 +482,13 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Revisar Publicação GMB", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("Revisar Publicação", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
             },
             text = {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "A publicação será enviada para a API do Google Meu Negócio e aparecerá no perfil da sua loja virtual instantaneamente.",
+                        text = "A postagem será publicada diretamente nos seus perfis sociais selecionados de forma simultânea.",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         ),
@@ -411,88 +533,127 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                     var postToFacebook by remember { mutableStateOf(isFacebookConnected) }
                     var postToInstagram by remember { mutableStateOf(isInstagramConnected) }
 
-                    Row(
+                    var postToTikTok by remember { mutableStateOf(isTikTokConnected) }
+
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // 1. Google connection (always active)
+                        // Linha 1: Google e TikTok
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .weight(1.1f)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
-                                .padding(4.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Checkbox(
-                                checked = true,
-                                onCheckedChange = { },
-                                enabled = false
-                            )
-                            Text(
-                                text = "Google",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                maxLines = 1
-                            )
+                            // 1. Google connection (always active)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
+                                    .padding(2.dp)
+                            ) {
+                                Checkbox(
+                                    checked = true,
+                                    onCheckedChange = { },
+                                    enabled = false
+                                )
+                                Text(
+                                    text = "Google",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    maxLines = 1
+                                )
+                            }
+
+                            // 2. TikTok
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (postToTikTok) Color(0xFF010101).copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface)
+                                    .clickable(enabled = isTikTokConnected) { postToTikTok = !postToTikTok }
+                                    .padding(2.dp)
+                            ) {
+                                Checkbox(
+                                    checked = postToTikTok,
+                                    onCheckedChange = { postToTikTok = it },
+                                    enabled = isTikTokConnected,
+                                    colors = CheckboxDefaults.colors(checkedColor = Color(0xFF010101))
+                                )
+                                Text(
+                                    text = "TikTok",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isTikTokConnected) Color(0xFF010101) else Color.Gray,
+                                    maxLines = 1
+                                )
+                            }
                         }
 
-                        // 2. Facebook
+                        // Linha 2: Facebook e Instagram
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .weight(1.1f)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(if (postToFacebook) Color(0xFF1877F2).copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface)
-                                .clickable(enabled = isFacebookConnected) { postToFacebook = !postToFacebook }
-                                .padding(4.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Checkbox(
-                                checked = postToFacebook,
-                                onCheckedChange = { postToFacebook = it },
-                                enabled = isFacebookConnected,
-                                colors = CheckboxDefaults.colors(checkedColor = Color(0xFF1877F2))
-                            )
-                            Text(
-                                text = "Facebook",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isFacebookConnected) Color(0xFF1877F2) else Color.Gray,
-                                maxLines = 1
-                            )
-                        }
+                            // 3. Facebook
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (postToFacebook) Color(0xFF1877F2).copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface)
+                                    .clickable(enabled = isFacebookConnected) { postToFacebook = !postToFacebook }
+                                    .padding(2.dp)
+                            ) {
+                                Checkbox(
+                                    checked = postToFacebook,
+                                    onCheckedChange = { postToFacebook = it },
+                                    enabled = isFacebookConnected,
+                                    colors = CheckboxDefaults.colors(checkedColor = Color(0xFF1877F2))
+                                )
+                                Text(
+                                    text = "Facebook",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isFacebookConnected) Color(0xFF1877F2) else Color.Gray,
+                                    maxLines = 1
+                                )
+                            }
 
-                        // 3. Instagram
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .weight(1.1f)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(if (postToInstagram) Color(0xFFE1306C).copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface)
-                                .clickable(enabled = isInstagramConnected) { postToInstagram = !postToInstagram }
-                                .padding(4.dp)
-                        ) {
-                            Checkbox(
-                                checked = postToInstagram,
-                                onCheckedChange = { postToInstagram = it },
-                                enabled = isInstagramConnected,
-                                colors = CheckboxDefaults.colors(checkedColor = Color(0xFFE1306C))
-                            )
-                            Text(
-                                text = "Instagram",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isInstagramConnected) Color(0xFFE1306C) else Color.Gray,
-                                maxLines = 1
-                            )
+                            // 4. Instagram
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (postToInstagram) Color(0xFFE1306C).copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface)
+                                    .clickable(enabled = isInstagramConnected) { postToInstagram = !postToInstagram }
+                                    .padding(2.dp)
+                            ) {
+                                Checkbox(
+                                    checked = postToInstagram,
+                                    onCheckedChange = { postToInstagram = it },
+                                    enabled = isInstagramConnected,
+                                    colors = CheckboxDefaults.colors(checkedColor = Color(0xFFE1306C))
+                                )
+                                Text(
+                                    text = "Instagram",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isInstagramConnected) Color(0xFFE1306C) else Color.Gray,
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
 
-                    if (!isFacebookConnected || !isInstagramConnected) {
-                        Spacer(modifier = Modifier.height(4.dp))
+                    if (!isFacebookConnected || !isInstagramConnected || !isTikTokConnected) {
+                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "💡 Vá em Configurações para integrar Facebook e Instagram e ativar a postagem simultânea.",
+                            text = "💡 Vá em Configurações para integrar o TikTok, Facebook ou Instagram e ativar a postagem simultânea.",
                             fontSize = 10.sp,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                             lineHeight = 13.sp

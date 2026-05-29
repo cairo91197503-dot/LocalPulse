@@ -30,17 +30,20 @@ fun SettingsScreen(
     val alertFrequency by viewModel.alertFrequency.collectAsState()
     val summaryLanguage by viewModel.summaryLanguage.collectAsState()
     val isOffline by viewModel.isOffline.collectAsState()
+    val isSimulationModeActive by viewModel.isSimulationModeActive.collectAsState()
 
     // Connection states
     val isFacebookConnected by viewModel.isFacebookConnected.collectAsState()
     val isInstagramConnected by viewModel.isInstagramConnected.collectAsState()
     val isWhatsAppConnected by viewModel.isWhatsAppConnected.collectAsState()
+    val isTikTokConnected by viewModel.isTikTokConnected.collectAsState()
 
     // Notification toggles
     val notificationGmb by viewModel.notificationGmb.collectAsState()
     val notificationFacebook by viewModel.notificationFacebook.collectAsState()
     val notificationInstagram by viewModel.notificationInstagram.collectAsState()
     val notificationWhatsApp by viewModel.notificationWhatsApp.collectAsState()
+    val notificationTikTok by viewModel.notificationTikTok.collectAsState()
 
     Column(
         modifier = Modifier
@@ -66,7 +69,7 @@ fun SettingsScreen(
 
         // Profile Details Card
         Text(
-            text = "Negócio Conectado",
+            text = "Perfil Conectado",
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary
@@ -93,8 +96,8 @@ fun SettingsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.BusinessCenter,
-                        contentDescription = "Business",
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Personal",
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -112,7 +115,7 @@ fun SettingsScreen(
                     )
 
                     Text(
-                        text = "ID: gmb_pub_47819203",
+                        text = "ID: pulse_personal_usr",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                         )
@@ -163,7 +166,7 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Google Meu Negócio",
+                                text = "Google/YouTube (Pessoal)",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -214,12 +217,12 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Facebook Business",
+                                text = "Facebook (Perfil)",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = if (isFacebookConnected) "Conectado como Página Oficial" else "Não integrado",
+                                text = if (isFacebookConnected) "Conectado como Perfil Pessoal" else "Não integrado",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                                 )
@@ -275,7 +278,7 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Instagram Professional",
+                                text = "Instagram (Pessoal)",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -312,7 +315,7 @@ fun SettingsScreen(
                     modifier = Modifier.padding(vertical = 12.dp)
                 )
 
-                // 4. WhatsApp Business (ready for future)
+                // 4. WhatsApp (Pessoal - pronto para futuro)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -337,7 +340,7 @@ fun SettingsScreen(
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "WhatsApp Business",
+                                    text = "WhatsApp (Pessoal)",
                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -357,7 +360,7 @@ fun SettingsScreen(
                                 }
                             }
                             Text(
-                                text = if (isWhatsAppConnected) "Lembretes ativos via WhatsApp" else "Não integrado",
+                                text = if (isWhatsAppConnected) "Mensagens via WhatsApp" else "Não integrado",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                                 )
@@ -379,6 +382,67 @@ fun SettingsScreen(
                     ) {
                         Text(
                             text = if (isWhatsAppConnected) "Remover" else "Configurar",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                // 5. TikTok connection (Personal/Non-commercial)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF010101).copy(alpha = 0.08f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = "TikTok",
+                                tint = Color(0xFF010101),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "TikTok (Pessoal)",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = if (isTikTokConnected) "Conectado como @${businessNameInput.replace(" ", "").lowercase()}" else "Não integrado",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                                )
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            if (isTikTokConnected) viewModel.disconnectTikTok()
+                            else viewModel.connectTikTok()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isTikTokConnected) MaterialTheme.colorScheme.error.copy(alpha = 0.1f) else Color(0xFF010101),
+                            contentColor = if (isTikTokConnected) MaterialTheme.colorScheme.error else Color.White
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                        modifier = Modifier.height(36.dp).testTag("tiktok_integration_toggle_btn")
+                    ) {
+                        Text(
+                            text = if (isTikTokConnected) "Desconectar" else "Conectar",
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
                         )
                     }
@@ -445,7 +509,7 @@ fun SettingsScreen(
             shape = RoundedCornerShape(12.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                // 1. Google Meu Negócio Reminder
+                // 1. Google/YouTube Reminder
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -453,12 +517,12 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Lembrar no Google Meu Negócio",
+                            text = "Lembrar no Google/YouTube (Pessoal)",
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Notificar se ficar mais de 5 dias sem publicar",
+                            text = "Notificar se ficar mais de 5 dias sem publicar um shorts/conteúdo",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                             )
@@ -538,7 +602,7 @@ fun SettingsScreen(
                     modifier = Modifier.padding(vertical = 12.dp)
                 )
 
-                // 4. WhatsApp Reminder
+                // 4. WhatsApp Reminder (Pessoal)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -546,12 +610,12 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Lembrar no WhatsApp Business Catalog",
+                            text = "Lembrar no WhatsApp (Pessoal)",
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Lembrete de novas promoções via catálogo de produtos",
+                            text = "Lembrete para manter contato com listas e interações",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                             )
@@ -561,6 +625,37 @@ fun SettingsScreen(
                         checked = notificationWhatsApp,
                         onCheckedChange = { viewModel.toggleNotificationWhatsApp() },
                         modifier = Modifier.testTag("notification_toggle_wa")
+                    )
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                // 5. TikTok Reminder
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Lembrar no TikTok (Pessoal)",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Notificar se ficar inativo por muito tempo no perfil TikTok",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
+                    Switch(
+                        checked = notificationTikTok,
+                        onCheckedChange = { viewModel.toggleNotificationTikTok() },
+                        modifier = Modifier.testTag("notification_toggle_tt")
                     )
                 }
             }
@@ -638,6 +733,38 @@ fun SettingsScreen(
             shape = RoundedCornerShape(12.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
+                // Simulation Mode Toggle
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Modo Simulação (Dados Simulados)",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Ative para preencher gráficos, feedbacks e sugestões com dados de demonstração. Desative para exibir apenas a realidade do seu canal.",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
+
+                    Switch(
+                        checked = isSimulationModeActive,
+                        onCheckedChange = { viewModel.setSimulationMode(it) },
+                        modifier = Modifier.testTag("simulation_mode_toggle_switch")
+                    )
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,

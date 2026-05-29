@@ -31,14 +31,15 @@ class BusinessRepository(private val dao: LocalPulseDao) {
     val sentimentSummary: Flow<SentimentSummary?> = dao.getSentimentSummary()
 
     // Initialize business data on first login
-    suspend fun initializeBusiness(businessName: String) = withContext(Dispatchers.IO) {
+    suspend fun initializeBusiness(businessName: String, accountType: String) = withContext(Dispatchers.IO) {
         // Prepare initial layout
         val initialProfile = BusinessProfile(
             name = businessName,
             rating = 4.4f,
             reviewCount = 50,
             unrepliedCount = 18,
-            lastPostDate = formatDateMinusDays(6)
+            lastPostDate = formatDateMinusDays(6),
+            accountType = accountType
         )
         dao.saveBusinessProfile(initialProfile)
 

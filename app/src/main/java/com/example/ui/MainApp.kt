@@ -37,10 +37,12 @@ fun MainApp(
     val notificationFacebook by viewModel.notificationFacebook.collectAsState()
     val notificationInstagram by viewModel.notificationInstagram.collectAsState()
     val notificationWhatsApp by viewModel.notificationWhatsApp.collectAsState()
+    val notificationTikTok by viewModel.notificationTikTok.collectAsState()
 
     val isFacebookConnected by viewModel.isFacebookConnected.collectAsState()
     val isInstagramConnected by viewModel.isInstagramConnected.collectAsState()
     val isWhatsAppConnected by viewModel.isWhatsAppConnected.collectAsState()
+    val isTikTokConnected by viewModel.isTikTokConnected.collectAsState()
 
     var showPrivacyPolicyDialog by remember { mutableStateOf(false) }
 
@@ -66,8 +68,8 @@ fun MainApp(
                             viewModel.selectReview(null) // Reset nested states
                             viewModel.changeTab("home")
                         },
-                        icon = { Icon(imageVector = Icons.Default.Dashboard, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                        icon = { Icon(imageVector = Icons.Default.Dashboard, contentDescription = "Início") },
+                        label = { Text("Início", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
                         modifier = Modifier.testTag("nav_tab_home")
                     )
 
@@ -88,8 +90,8 @@ fun MainApp(
                             viewModel.selectReview(null)
                             viewModel.changeTab("posts")
                         },
-                        icon = { Icon(imageVector = Icons.Default.PostAdd, contentDescription = "Posts") },
-                        label = { Text("Posts", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                        icon = { Icon(imageVector = Icons.Default.PostAdd, contentDescription = "Publicações") },
+                        label = { Text("Publicações", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
                         modifier = Modifier.testTag("nav_tab_posts")
                     )
 
@@ -188,13 +190,13 @@ fun MainApp(
             text = {
                 Column {
                     Text(
-                        text = "Que tal postar uma foto do seu negócio hoje?",
+                        text = "Que tal publicar no seu perfil hoje?",
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     Text(
-                        text = "Manter suas mídias integradas atualizadas aumenta o seu engajamento local em até 40%! Confira abaixo quais canais de postagem estão recebendo este alerta e a sugestão de publicação gerada por IA:",
+                        text = "Manter suas mídias sociais integradas atualizadas aumenta o seu engajamento pessoal e a conexão com seus seguidores! Confira abaixo quais canais de postagem estão gerando alerta e veja a sugestão de publicação gerada por IA:",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
                         )
@@ -202,7 +204,7 @@ fun MainApp(
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "Canais de Postagem Configurados:",
+                        text = "Canais de Conteúdo Integrados:",
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -211,28 +213,34 @@ fun MainApp(
                     Spacer(modifier = Modifier.height(6.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         ReminderStatusRow(
-                            name = "Google Meu Negócio",
+                            name = "Google/YouTube",
                             isConnected = true,
                             isNotificationEnabled = notificationGmb,
                             brandColor = MaterialTheme.colorScheme.primary
                         )
                         ReminderStatusRow(
-                            name = "Facebook Page Connect",
+                            name = "Facebook (Perfil)",
                             isConnected = isFacebookConnected,
                             isNotificationEnabled = notificationFacebook,
                             brandColor = Color(0xFF1877F2)
                         )
                         ReminderStatusRow(
-                            name = "Instagram Feed / Stories",
+                            name = "Instagram (Pessoal)",
                             isConnected = isInstagramConnected,
                             isNotificationEnabled = notificationInstagram,
                             brandColor = Color(0xFFE1306C)
                         )
                         ReminderStatusRow(
-                            name = "WhatsApp Business (Catálogo)",
+                            name = "WhatsApp (Pessoal)",
                             isConnected = isWhatsAppConnected,
                             isNotificationEnabled = notificationWhatsApp,
                             brandColor = Color(0xFF25D366)
+                        )
+                        ReminderStatusRow(
+                            name = "TikTok (Pessoal)",
+                            isConnected = isTikTokConnected,
+                            isNotificationEnabled = notificationTikTok,
+                            brandColor = Color(0xFF010101)
                         )
                     }
 
@@ -303,15 +311,15 @@ fun MainApp(
                         modifier = Modifier.verticalScroll(rememberScrollState())
                     ) {
                         Text(
-                            text = "A sua privacidade é de extrema importância para nós do LocalPulse. Esta política esclarece como coletamos, guardamos e interagimos com as APIs integradas de terceiros:\n\n" +
+                            text = "A sua privacidade é de extrema importância para nós do PulsePersonal. Esta política esclarece como coletamos, guardamos e interagimos com as APIs integradas de terceiros:\n\n" +
                                     "1. Autenticação e Credenciais:\n" +
-                                    "O LocalPulse utiliza o Firebase Auth para autenticação via provedor Google. O login é seguro e direto nos servidores do ecossistema Google, não armazenando senhas ou dados sensíveis em servidores próprios do aplicativo.\n\n" +
-                                    "2. Google Business Profile API:\n" +
-                                    "Ao conceder acesso ao escopo 'business.manage', o aplicativo realiza chamadas em seu nome estritamente para listar avaliações recebidas por clientes locais do seu estabelecimento comercial, permitir a publicação direta de respostas às mesmas ou a criação e agendamento de postagens promocionais.\n\n" +
+                                    "O PulsePersonal utiliza provedores de autenticação padrão para login seguro. O login é direto e seguro nos servidores parceiros, não armazenando senhas ou dados sensíveis de forma insegura.\n\n" +
+                                    "2. Integração e Interação:\n" +
+                                    "Ao conceder acesso aos perfis sociais (TikTok, Instagram, etc), o aplicativo realiza chamadas estritamente em seu nome para permitir a listagem de interações de seguidores, permitir resposta inteligente ou sugerir ideias criativas de postagens para engajar seu público.\n\n" +
                                     "3. Armazenamento Offline (Cache):\n" +
-                                    "Para garantir um desempenho ágil em locais de baixa conexão de dados celulares, cacheamos as revisões e resumos de forma criptografada localmente via banco de dados (Room Room Database). Você poderá desativá-lo a qualquer momento limpando os dados do aplicativo nas preferências do sistema Android.\n\n" +
+                                    "Para garantir um desempenho ágil em locais de baixa conexão de dados celulares, cacheamos os feedbacks de redes sociais de forma criptografada localmente via banco de dados local (Room Database). Você poderá limpá-los a qualquer momento apagando os dados de armazenamento do app nas configurações padrão do sistema operacional Android.\n\n" +
                                     "4. Uso de Inteligência Artificial (Gemini API):\n" +
-                                    "Ao utilizar recursos como 'Resumos semanais' ou 'Responder com IA', trechos anônimos dos feedbacks (texto escrito pelo cliente, nota e nome do autor) são passados à API do Gemini do Google AI Studio para geração de sugestões contextuais. Nenhum dado financeiro ou de identificação privada é compartilhado com os modelos generativos.",
+                                    "Ao utilizar recursos generativos, trechos anônimos dos feedbacks recebidos são processados com segurança através da API do Gemini para gerar sugestões contextuais. Absolutamente nenhum dado sensível do perfil é indexado por modelos generativos externos.",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 lineHeight = 18.sp,
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)

@@ -55,7 +55,7 @@ fun ReviewDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Responder Avaliação", fontWeight = FontWeight.Bold) },
+                title = { Text("Responder Feedback", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(
                         onClick = onBack,
@@ -126,7 +126,7 @@ fun ReviewDetailScreen(
                                     modifier = Modifier.testTag("detail_customer_name")
                                 )
                                 Text(
-                                    text = "Avaliação via Google Meu Negócio",
+                                    text = "Interação do Perfil Pessoal",
                                     style = MaterialTheme.typography.bodySmall.copy(
                                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                                     )

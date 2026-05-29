@@ -32,7 +32,8 @@ data class BusinessProfile(
     val rating: Float,
     val reviewCount: Int,
     val unrepliedCount: Int,
-    val lastPostDate: String? = null
+    val lastPostDate: String? = null,
+    val accountType: String = "PERSONAL"
 )
 
 @Entity(tableName = "sentiment_summary")

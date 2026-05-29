@@ -16,7 +16,7 @@ import com.example.data.models.SentimentSummary
         BusinessProfile::class,
         SentimentSummary::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

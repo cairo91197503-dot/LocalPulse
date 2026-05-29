@@ -40,6 +40,7 @@ fun HomeScreen(
     val allReviews by viewModel.allReviews.collectAsState()
     val isOffline by viewModel.isOffline.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isSimulationModeActive by viewModel.isSimulationModeActive.collectAsState()
 
     val scrollState = rememberScrollState()
 
@@ -70,13 +71,35 @@ fun HomeScreen(
                     )
                 )
                 Text(
-                    text = profile?.name ?: "Seu Negócio",
+                    text = profile?.name ?: "Seu Perfil",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     ),
                     modifier = Modifier.testTag("home_business_name")
                 )
+
+                // Dynamic Account Type Badge
+                Spacer(modifier = Modifier.height(4.dp))
+                val isPersonal = (profile?.accountType ?: "PERSONAL") == "PERSONAL"
+                val badgeText = if (isPersonal) "Pessoal (Criador)" else "Comercial (Empresa)"
+                val badgeColor = if (isPersonal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(badgeColor.copy(alpha = 0.08f))
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                        .testTag("account_type_indicator_badge")
+                ) {
+                    Text(
+                        text = badgeText,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = badgeColor
+                        )
+                    )
+                }
             }
 
             // Simple profile icon
@@ -87,7 +110,7 @@ fun HomeScreen(
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
             ) {
                 Icon(
-                    imageVector = Icons.Default.BusinessCenter,
+                    imageVector = Icons.Default.Person,
                     contentDescription = "Configurações",
                     tint = MaterialTheme.colorScheme.primary
                 )
@@ -100,6 +123,7 @@ fun HomeScreen(
         SentimentCard(
             summary = sentiment,
             isLoading = isLoading,
+            isSimulationModeActive = isSimulationModeActive,
             onRefresh = { viewModel.refreshWeeklySentiment() }
         )
 
@@ -117,6 +141,41 @@ fun HomeScreen(
 
         MetricsGrid(profile = profile)
 
+        if (!isSimulationModeActive) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "Consolidação de Dados Reais",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "As métricas acima refletem apenas dados reais. Para carregar e consolidar suas avaliações legítimas das redes, configure suas integrações oficiais na aba Configurações.",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         // Highlight Latest Review Card
@@ -126,7 +185,7 @@ fun HomeScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Última avaliação recebida",
+                text = "Último feedback recebido",
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
@@ -137,7 +196,7 @@ fun HomeScreen(
                 onClick = onNavigateToReviews,
                 modifier = Modifier.testTag("view_all_reviews_text_button")
             ) {
-                Text("Ver todas", color = MaterialTheme.colorScheme.secondary)
+                Text("Ver todos", color = MaterialTheme.colorScheme.secondary)
             }
         }
 
@@ -163,7 +222,7 @@ fun HomeScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Nenhuma avaliação pendente no momento.",
+                        text = "Nenhum feedback pendente no momento.",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         )
@@ -178,6 +237,7 @@ fun HomeScreen(
 fun SentimentCard(
     summary: SentimentSummary?,
     isLoading: Boolean,
+    isSimulationModeActive: Boolean,
     onRefresh: () -> Unit
 ) {
     Card(
@@ -185,10 +245,10 @@ fun SentimentCard(
             .fillMaxWidth()
             .testTag("weekly_sentiment_card"),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = if (isSimulationModeActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
         ),
         shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isSimulationModeActive) 2.dp else 0.dp)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -200,80 +260,118 @@ fun SentimentCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.AutoAwesome,
+                        imageVector = if (isSimulationModeActive) Icons.Default.AutoAwesome else Icons.Default.Info,
                         contentDescription = "IA LocalPulse",
-                        tint = MaterialTheme.colorScheme.secondary,
+                        tint = if (isSimulationModeActive) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "RESUMO DE SENTIMENTO IA",
+                        text = if (isSimulationModeActive) "RESUMO DE SENTIMENTO IA" else "SOBRE ESTA OPÇÃO (RESUMO DE SENTIMENTO IA)",
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.6f)
+                            color = if (isSimulationModeActive) Color.White.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary
                         )
                     )
                 }
 
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = Color.White
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Recarregar Análise",
-                        tint = Color.White.copy(alpha = 0.8f),
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clickable { onRefresh() }
-                            .testTag("refresh_sentiment_btn")
-                    )
+                if (isSimulationModeActive) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Recarregar Análise",
+                            tint = Color.White.copy(alpha = 0.8f),
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable { onRefresh() }
+                                .testTag("refresh_sentiment_btn")
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = summary?.text ?: "Calculando sentimento de reputação com inteligência artificial...",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
-                    lineHeight = 24.sp
-                ),
-                modifier = Modifier.testTag("sentiment_summary_text")
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if (isSimulationModeActive) {
                 Text(
-                    text = "Atualizado em ${summary?.dateUpdated ?: "--/--/--"}",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = Color.White.copy(alpha = 0.5f)
-                    )
+                    text = summary?.text ?: "Calculando sentimento de reputação com inteligência artificial...",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White,
+                        lineHeight = 24.sp
+                    ),
+                    modifier = Modifier.testTag("sentiment_summary_text")
                 )
 
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White.copy(alpha = 0.15f))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Semanal",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.secondary
+                        text = "Atualizado em ${summary?.dateUpdated ?: "--/--/--"}",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = Color.White.copy(alpha = 0.5f)
                         )
                     )
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White.copy(alpha = 0.15f))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "Semanal",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        )
+                    }
                 }
+            } else {
+                Text(
+                    text = "💡 O que esta opção faz?",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Consolida os elogios recebidos e as queixas mais frequentes feitas por seus clientes nas redes conectadas, gerando um diagnóstico estratégico claro para aprimorar seu atendimento de forma descomplicada.",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                        lineHeight = 18.sp
+                    )
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Text(
+                    text = "🔑 O que é necessário para obter dados reais?",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Vincule suas credenciais oficiais do Google Meu Negócio ou Facebook no menu Configurações. É necessário receber no mínimo 5 avaliações verdadeiras de clientes para acionar a análise automatizada do modelo Gemini.",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                        lineHeight = 18.sp
+                    )
+                )
             }
         }
     }
@@ -287,7 +385,7 @@ fun MetricsGrid(profile: BusinessProfile?) {
     ) {
         MetricItemCard(
             modifier = Modifier.weight(1f),
-            title = "Nota Média",
+            title = "Engajamento",
             value = String.format(Locale.getDefault(), "%.1f", profile?.rating ?: 4.4f),
             icon = Icons.Default.Star,
             iconColor = Color(0xFFFFB300),
@@ -296,7 +394,7 @@ fun MetricsGrid(profile: BusinessProfile?) {
 
         MetricItemCard(
             modifier = Modifier.weight(1f),
-            title = "Total Avaliações",
+            title = "Interações",
             value = (profile?.reviewCount ?: 50).toString(),
             icon = Icons.Default.RateReview,
             iconColor = MaterialTheme.colorScheme.primary,
@@ -305,7 +403,7 @@ fun MetricsGrid(profile: BusinessProfile?) {
 
         MetricItemCard(
             modifier = Modifier.weight(1f),
-            title = "Sem Resposta",
+            title = "Sem Retorno",
             value = (profile?.unrepliedCount ?: 18).toString(),
             icon = Icons.Default.MarkChatUnread,
             iconColor = MaterialTheme.colorScheme.error,

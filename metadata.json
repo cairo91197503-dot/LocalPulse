@@ -1,6 +1,6 @@
 {
-  "name": "LocalPulse",
-  "description": "Gerencie a reputação online do seu pequeno negócio em tempo real com resumos semanais de sentimento e sugestões de respostas inteligentes geradas por IA.",
+  "name": "PulsePersonal",
+  "description": "Gerencie seu engajamento e presença pessoal nas redes sociais em tempo real, sem fins comerciais, com resumos semanais de sentimento e sugestões de respostas inteligentes geradas por IA.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
