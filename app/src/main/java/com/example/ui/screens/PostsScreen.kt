@@ -530,27 +530,85 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                                 )
                             }
                             if (post.scheduledTime != null) {
+                                val isPending = !post.isManualPostedByUser && !post.isAutonomousPost
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f))
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Schedule,
-                                        contentDescription = "Agendado",
-                                        tint = MaterialTheme.colorScheme.secondary,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = "Agendado para: ${post.scheduledTime}",
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.secondary
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(
+                                                if (isPending) {
+                                                    if (userPlan == "FREE") Color(0xFFFFF3CD) else MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f)
+                                                } else {
+                                                    Color(0xFFD4EDDA)
+                                                }
+                                            )
+                                            .padding(horizontal = 6.dp, vertical = 4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Schedule,
+                                            contentDescription = "Status",
+                                            tint = if (isPending) {
+                                                if (userPlan == "FREE") Color(0xFF856404) else MaterialTheme.colorScheme.secondary
+                                            } else {
+                                                Color(0xFF155724)
+                                            },
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = if (isPending) {
+                                                when (userPlan) {
+                                                    "FREE" -> "Lembrete Manual em: ${post.scheduledTime}"
+                                                    "PRO" -> "Postagem Auto PRO em: ${post.scheduledTime}"
+                                                    else -> "Autopilot Automático Expert: ${post.scheduledTime}"
+                                                }
+                                            } else if (post.isManualPostedByUser) {
+                                                "Publicado via Lembrete do Usuário ✅"
+                                            } else {
+                                                "Publicado Automaticamente ✅"
+                                            },
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isPending) {
+                                                if (userPlan == "FREE") Color(0xFF856404) else MaterialTheme.colorScheme.secondary
+                                            } else {
+                                                Color(0xFF155724)
+                                            }
+                                        )
+                                    }
+
+                                    if (isPending) {
+                                        Button(
+                                            onClick = { viewModel.simulateTriggerSchedule(post) },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                                                contentColor = MaterialTheme.colorScheme.primary
+                                            ),
+                                            shape = RoundedCornerShape(4.dp),
+                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                            modifier = Modifier.height(24.dp)
+                                        ) {
+                                            Text("Simular Horário", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+
+                                if (isPending && userPlan == "FREE") {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Button(
+                                        onClick = { viewModel.completeManualPost(post) },
+                                        modifier = Modifier.fillMaxWidth().height(36.dp).testTag("manual_post_btn_${post.id}"),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                                        shape = RoundedCornerShape(6.dp)
+                                    ) {
+                                        Text("Publicar no Perfil Agora (Manual)", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
                                 }
                             }
 
@@ -646,7 +704,7 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                         maxLines = 6
                     )
 
-                    // Scheduling Section (Agendar posts - Premium Expert+ exclusive)
+                    // Scheduling Section (Agendar posts - Available across all plans with specific posting automation rules)
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(
                         modifier = Modifier
@@ -654,11 +712,7 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                             .clip(RoundedCornerShape(8.dp))
                             .background(if (isScheduledPost) MaterialTheme.colorScheme.primary.copy(alpha = 0.04f) else Color.Transparent)
                             .clickable {
-                                if (userPlan == "EXPERT_PLUS") {
-                                    isScheduledPost = !isScheduledPost
-                                } else {
-                                    viewModel.showPremiumUpgrade()
-                                }
+                                isScheduledPost = !isScheduledPost
                             }
                             .padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -673,23 +727,20 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "Agendar Publicação",
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-                                    )
-                                    if (userPlan != "EXPERT_PLUS") {
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Icon(
-                                            imageVector = Icons.Default.Lock,
-                                            contentDescription = "Bloqueado",
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(12.dp)
-                                        )
-                                    }
-                                }
                                 Text(
-                                    text = "Escolha um dia e horário futuros para postagem",
+                                    text = when (userPlan) {
+                                        "FREE" -> "Agendar Lembrete (Manual)"
+                                        "PRO" -> "Agendar Post Automático (PRO)"
+                                        else -> "Agendar Post Otimizado (Expert)"
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                                Text(
+                                    text = when (userPlan) {
+                                        "FREE" -> "O app somente lembrará; o post deve ser feito manualmente por você"
+                                        "PRO" -> "Post será publicado de forma 100% automática no horário agendado"
+                                        else -> "Otimização automática de hashtags e publicação Smart por Autopilot IA"
+                                    },
                                     fontSize = 10.sp,
                                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                                 )
@@ -699,17 +750,13 @@ fun PostsScreen(viewModel: BusinessViewModel) {
                         Switch(
                             checked = isScheduledPost,
                             onCheckedChange = { checked ->
-                                if (userPlan == "EXPERT_PLUS") {
-                                    isScheduledPost = checked
-                                } else {
-                                    viewModel.showPremiumUpgrade()
-                                }
+                                isScheduledPost = checked
                             },
                             modifier = Modifier.testTag("scheduler_post_switch")
                         )
                     }
 
-                    if (isScheduledPost && userPlan == "EXPERT_PLUS") {
+                    if (isScheduledPost) {
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = scheduledDateText,

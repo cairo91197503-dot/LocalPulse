@@ -183,14 +183,23 @@ class BusinessRepository(private val dao: LocalPulseDao) {
     }
 
     // Create a new post
-    suspend fun createPost(title: String, content: String, imageUrl: String? = null, scheduledTime: String? = null) = withContext(Dispatchers.IO) {
+    suspend fun createPost(
+        title: String,
+        content: String,
+        imageUrl: String? = null,
+        scheduledTime: String? = null,
+        isManualPostedByUser: Boolean = false,
+        isAutonomousPost: Boolean = false
+    ) = withContext(Dispatchers.IO) {
         val newPost = Post(
             id = "user_post_${System.currentTimeMillis()}",
             title = title,
             content = content,
             imageUrl = imageUrl,
             createTime = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date()),
-            scheduledTime = scheduledTime
+            scheduledTime = scheduledTime,
+            isManualPostedByUser = isManualPostedByUser,
+            isAutonomousPost = isAutonomousPost
         )
         dao.insertPost(newPost)
 
@@ -202,6 +211,11 @@ class BusinessRepository(private val dao: LocalPulseDao) {
             )
             dao.saveBusinessProfile(updatedProfile)
         }
+    }
+
+    // Update an existing post
+    suspend fun updatePost(post: Post) = withContext(Dispatchers.IO) {
+        dao.updatePost(post)
     }
 
     private fun formatDateMinusDays(days: Int): String {

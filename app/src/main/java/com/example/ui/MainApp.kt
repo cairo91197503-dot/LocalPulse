@@ -147,105 +147,223 @@ fun MainApp(
             )
         }
 
-        Scaffold(
-            bottomBar = {
-                // Main Bottom Navigation Bar
-                NavigationBar(
-                    modifier = Modifier.testTag("main_bottom_nav"),
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 8.dp
+        val postNotificationAlert by viewModel.postNotificationAlert.collectAsState()
+        val pendingNotificationPost by viewModel.pendingNotificationPost.collectAsState()
+        val mediaRequestPostPending by viewModel.mediaRequestPostPending.collectAsState()
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                bottomBar = {
+                    // Main Bottom Navigation Bar
+                    NavigationBar(
+                        modifier = Modifier.testTag("main_bottom_nav"),
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 8.dp
+                    ) {
+                        NavigationBarItem(
+                            selected = currentTab == "home",
+                            onClick = {
+                                viewModel.selectReview(null) // Reset nested states
+                                viewModel.changeTab("home")
+                            },
+                            icon = { Icon(imageVector = Icons.Default.Dashboard, contentDescription = "Início") },
+                            label = { Text("Início", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                            modifier = Modifier.testTag("nav_tab_home")
+                        )
+
+                        NavigationBarItem(
+                            selected = currentTab == "reviews",
+                            onClick = {
+                                viewModel.selectReview(null)
+                                viewModel.changeTab("reviews")
+                            },
+                            icon = { Icon(imageVector = Icons.Default.RateReview, contentDescription = "Avaliações") },
+                            label = { Text("Avaliações", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                            modifier = Modifier.testTag("nav_tab_reviews")
+                        )
+
+                        NavigationBarItem(
+                            selected = currentTab == "posts",
+                            onClick = {
+                                viewModel.selectReview(null)
+                                viewModel.changeTab("posts")
+                            },
+                            icon = { Icon(imageVector = Icons.Default.PostAdd, contentDescription = "Publicações") },
+                            label = { Text("Publicações", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                            modifier = Modifier.testTag("nav_tab_posts")
+                        )
+
+                        NavigationBarItem(
+                            selected = currentTab == "settings",
+                            onClick = {
+                                viewModel.selectReview(null)
+                                viewModel.changeTab("settings")
+                            },
+                            icon = { Icon(imageVector = Icons.Default.Settings, contentDescription = "Configurações") },
+                            label = { Text("Configurações", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                            modifier = Modifier.testTag("nav_tab_settings")
+                        )
+                    }
+                }
+            ) { innerPadding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .background(MaterialTheme.colorScheme.background)
                 ) {
-                    NavigationBarItem(
-                        selected = currentTab == "home",
-                        onClick = {
-                            viewModel.selectReview(null) // Reset nested states
-                            viewModel.changeTab("home")
-                        },
-                        icon = { Icon(imageVector = Icons.Default.Dashboard, contentDescription = "Início") },
-                        label = { Text("Início", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
-                        modifier = Modifier.testTag("nav_tab_home")
-                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        // If nested in review detail, display detail screen regardless of tab (Reviews list master-detail sub-navigation pattern)
+                        val activeReview = selectedReview
+                        if (activeReview != null) {
+                            ReviewDetailScreen(
+                                review = activeReview,
+                                viewModel = viewModel,
+                                onBack = { viewModel.selectReview(null) }
+                            )
+                        } else {
+                            // Switch top level content sheets
+                            when (currentTab) {
+                                "home" -> HomeScreen(
+                                    viewModel = viewModel,
+                                    onNavigateToReviews = { viewModel.changeTab("reviews") },
+                                    onNavigateToDetail = { viewModel.selectReview(it) }
+                                )
+                                "reviews" -> ReviewsScreen(
+                                    viewModel = viewModel,
+                                    onNavigateToDetail = { viewModel.selectReview(it) }
+                                )
+                                "posts" -> PostsScreen(
+                                    viewModel = viewModel
+                                )
+                                "settings" -> SettingsScreen(
+                                    viewModel = viewModel,
+                                    onShowPrivacyPolicy = { showPrivacyPolicyDialog = true }
+                                )
+                            }
+                        }
+                    }
 
-                    NavigationBarItem(
-                        selected = currentTab == "reviews",
-                        onClick = {
-                            viewModel.selectReview(null)
-                            viewModel.changeTab("reviews")
-                        },
-                        icon = { Icon(imageVector = Icons.Default.RateReview, contentDescription = "Avaliações") },
-                        label = { Text("Avaliações", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
-                        modifier = Modifier.testTag("nav_tab_reviews")
-                    )
-
-                    NavigationBarItem(
-                        selected = currentTab == "posts",
-                        onClick = {
-                            viewModel.selectReview(null)
-                            viewModel.changeTab("posts")
-                        },
-                        icon = { Icon(imageVector = Icons.Default.PostAdd, contentDescription = "Publicações") },
-                        label = { Text("Publicações", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
-                        modifier = Modifier.testTag("nav_tab_posts")
-                    )
-
-                    NavigationBarItem(
-                        selected = currentTab == "settings",
-                        onClick = {
-                            viewModel.selectReview(null)
-                            viewModel.changeTab("settings")
-                        },
-                        icon = { Icon(imageVector = Icons.Default.Settings, contentDescription = "Configurações") },
-                        label = { Text("Configurações", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
-                        modifier = Modifier.testTag("nav_tab_settings")
-                    )
+                    if (userPlan == "FREE") {
+                        AdBanner()
+                    }
                 }
             }
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(MaterialTheme.colorScheme.background)
-            ) {
-                Box(
+
+            // Dynamic Alert / Push simulated banner overlay at the top of the interface
+            postNotificationAlert?.let { alertMsg ->
+                Card(
                     modifier = Modifier
-                        .weight(1f)
                         .fillMaxWidth()
+                        .padding(16.dp)
+                        .align(Alignment.TopCenter)
+                        .testTag("in_app_notification_banner"),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    // If nested in review detail, display detail screen regardless of tab (Reviews list master-detail sub-navigation pattern)
-                    val activeReview = selectedReview
-                    if (activeReview != null) {
-                        ReviewDetailScreen(
-                            review = activeReview,
-                            viewModel = viewModel,
-                            onBack = { viewModel.selectReview(null) }
-                        )
-                    } else {
-                        // Switch top level content sheets
-                        when (currentTab) {
-                            "home" -> HomeScreen(
-                                viewModel = viewModel,
-                                onNavigateToReviews = { viewModel.changeTab("reviews") },
-                                onNavigateToDetail = { viewModel.selectReview(it) }
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.NotificationsActive,
+                                contentDescription = "Notificação",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
-                            "reviews" -> ReviewsScreen(
-                                viewModel = viewModel,
-                                onNavigateToDetail = { viewModel.selectReview(it) }
-                            )
-                            "posts" -> PostsScreen(
-                                viewModel = viewModel
-                            )
-                            "settings" -> SettingsScreen(
-                                viewModel = viewModel,
-                                onShowPrivacyPolicy = { showPrivacyPolicyDialog = true }
-                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Notificação do PulsePersonal",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = alertMsg,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.9f)
+                                )
+                            }
+                            IconButton(onClick = { viewModel.dismissPostNotification() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Fechar",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
+
+                        // If there is a manual post pending attached, show immediate action
+                        pendingNotificationPost?.let { pendingPost ->
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Button(
+                                onClick = {
+                                    viewModel.completeManualPost(pendingPost)
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth().height(36.dp).testTag("notification_publish_action_btn")
+                            ) {
+                                Text("Publicar Agora (Ação Requerida)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
+            }
 
-                if (userPlan == "FREE") {
-                    AdBanner()
-                }
+            // Expert Plan Media Confirmation Request overlay modal
+            mediaRequestPostPending?.let { pedpost ->
+                AlertDialog(
+                    onDismissRequest = { viewModel.dismissMediaRequest() },
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "Expert AI",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("🤖 Solicitação de Mídia (Expert)", fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    text = {
+                        Column {
+                            Text(
+                                text = "O Planejador Inteligente (Autopilot) planejou a postagem: \n\n\"${pedpost.title}\"\n\nComo as diretrizes de imagem/vídeo exigem sua revisão e anexo, por favor, autorize e confirme a inclusão da mídia correspondente para publicar de forma 100% automática.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                viewModel.completeExpertPostWithMedia(pedpost)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            modifier = Modifier.testTag("expert_media_authorize_btn")
+                        ) {
+                            Text("Autorizar e Postar")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { viewModel.dismissMediaRequest() },
+                            modifier = Modifier.testTag("expert_media_reject_btn")
+                        ) {
+                            Text("Verificar Mais Tarde")
+                        }
+                    },
+                    shape = RoundedCornerShape(16.dp)
+                )
             }
         }
     }

@@ -23,7 +23,9 @@ data class Post(
     val content: String,
     val createTime: String,
     val imageUrl: String? = null,
-    val scheduledTime: String? = null
+    val scheduledTime: String? = null,
+    val isManualPostedByUser: Boolean = false,
+    val isAutonomousPost: Boolean = false
 )
 
 @Entity(tableName = "business_profile")

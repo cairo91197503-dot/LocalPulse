@@ -51,6 +51,9 @@ interface LocalPulseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPost(post: Post)
 
+    @Update
+    suspend fun updatePost(post: Post)
+
     @Query("DELETE FROM posts")
     suspend fun clearPosts()
 

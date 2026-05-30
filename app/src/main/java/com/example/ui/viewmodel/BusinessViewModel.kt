@@ -217,6 +217,25 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
     private val _summaryLanguage = MutableStateFlow("pt-BR") // pt-BR, es, en
     val summaryLanguage: StateFlow<String> = _summaryLanguage.asStateFlow()
 
+    // Notification State for scheduled posts
+    private val _postNotificationAlert = MutableStateFlow<String?>(null)
+    val postNotificationAlert: StateFlow<String?> = _postNotificationAlert.asStateFlow()
+
+    private val _pendingNotificationPost = MutableStateFlow<Post?>(null)
+    val pendingNotificationPost: StateFlow<Post?> = _pendingNotificationPost.asStateFlow()
+
+    private val _mediaRequestPostPending = MutableStateFlow<Post?>(null)
+    val mediaRequestPostPending: StateFlow<Post?> = _mediaRequestPostPending.asStateFlow()
+
+    fun dismissPostNotification() {
+        _postNotificationAlert.value = null
+        _pendingNotificationPost.value = null
+    }
+
+    fun dismissMediaRequest() {
+        _mediaRequestPostPending.value = null
+    }
+
     // Inactivity post suggestion - Adapted for personal social media
     val inactivityPostIdea = PostIdea(
         title = "📸 Um dia produtivo por aqui!",
@@ -652,7 +671,38 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                repository.createPost(title, content, scheduledTime = scheduledTime)
+                val currentPlan = _userPlan.value
+                val isScheduled = scheduledTime != null
+                
+                // Let's configure initial flags based on plan and whether it's scheduled
+                val isManualPost = !isScheduled // Immediately posted means manual user post, otherwise false default
+                val isAutoPost = isScheduled && (currentPlan == "PRO" || currentPlan == "EXPERT_PLUS")
+                
+                repository.createPost(
+                    title = title,
+                    content = content,
+                    scheduledTime = scheduledTime,
+                    isManualPostedByUser = isManualPost,
+                    isAutonomousPost = isAutoPost
+                )
+                
+                // Inform user about success with clean dynamic state
+                if (isScheduled) {
+                    when (currentPlan) {
+                        "FREE" -> {
+                            _postNotificationAlert.value = "📅 Agendado no Plano Gratuito: O app apenas lembrará você no horário \"$scheduledTime\". A postagem final deve ser feita manualmente."
+                        }
+                        "PRO" -> {
+                            _postNotificationAlert.value = "🚀 Agendado no Plano PRO: O post será publicado de forma 100% automática em \"$scheduledTime\"!"
+                        }
+                        else -> {
+                            _postNotificationAlert.value = "🤖 Agendado no Plano Expert: Planejado e otimizado automaticamente pela IA para \"$scheduledTime\"!"
+                        }
+                    }
+                } else {
+                    _postNotificationAlert.value = "✅ Publicado com sucesso no seu perfil social!"
+                }
+                
                 _lastPostDelayDetected.value = false // reset flag since user just posted!
                 _showInactivityDialog.value = false
             } catch (e: Exception) {
@@ -660,6 +710,57 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    // Simulation triggers for scheduled posts depending on plan
+    fun simulateTriggerSchedule(post: Post) {
+        viewModelScope.launch {
+            val currentPlan = _userPlan.value
+            if (currentPlan == "FREE") {
+                // Free Plan: APP ONLY NOTIFIES! User must perform the manual action
+                _pendingNotificationPost.value = post
+                _postNotificationAlert.value = "⏰ Lembrete de Horário (Plano Gratuito): Chegou a hora de publicar o post \"${post.title}\"! Toque para concluir a publicação manualmente."
+            } else if (currentPlan == "PRO") {
+                // Pro Plan: Automatically post and show notified/success state
+                val updatedPost = post.copy(
+                    isAutonomousPost = true,
+                    isManualPostedByUser = false
+                )
+                repository.updatePost(updatedPost)
+                _postNotificationAlert.value = "✅ Publicação Automática (Plano PRO): O post \"${post.title}\" foi postado automaticamente de forma silenciosa!"
+            } else {
+                // Expert Plan (EXPERT_PLUS): Autopilot / automated flow, requests media confirmation
+                _mediaRequestPostPending.value = post
+            }
+        }
+    }
+
+    // Free User completes the manual post action requested by the notification or in the list card
+    fun completeManualPost(post: Post) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val updatedPost = post.copy(
+                isManualPostedByUser = true
+            )
+            repository.updatePost(updatedPost)
+            _isLoading.value = false
+            dismissPostNotification()
+            _postNotificationAlert.value = "✅ Post \"${post.title}\" publicado manualmente com sucesso pelo usuário!"
+        }
+    }
+
+    // Expert User authorizes media and publishes automatically
+    fun completeExpertPostWithMedia(post: Post) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val updatedPost = post.copy(
+                isAutonomousPost = true
+            )
+            repository.updatePost(updatedPost)
+            _isLoading.value = false
+            dismissMediaRequest()
+            _postNotificationAlert.value = "🤖 Planejamento Expert Autorizado: Post \"${post.title}\" com mídias anexadas e publicado automaticamente!"
         }
     }
 
