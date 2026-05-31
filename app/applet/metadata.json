@@ -1,0 +1,8 @@
+{
+  "name": "PulsePersonal",
+  "description": "Premium personal metrics and pulse tracking app built with Jetpack Compose.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
