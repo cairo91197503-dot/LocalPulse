@@ -43,11 +43,44 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
     private val _accountType = MutableStateFlow(sharedPrefs.getString("account_type", "PERSONAL") ?: "PERSONAL")
     val accountType: StateFlow<String> = _accountType.asStateFlow()
 
-    private val _userPlan = MutableStateFlow(sharedPrefs.getString("user_plan", "FREE") ?: "FREE")
+    private val _userPlan = MutableStateFlow(sharedPrefs.getString("user_plan", "EXPERT_PLUS") ?: "EXPERT_PLUS")
     val userPlan: StateFlow<String> = _userPlan.asStateFlow()
+
+    private val _showTutorialDialog = MutableStateFlow(false)
+    val showTutorialDialog: StateFlow<Boolean> = _showTutorialDialog.asStateFlow()
+
+    fun triggerTutorial() {
+        _showTutorialDialog.value = true
+    }
+
+    fun dismissTutorial() {
+        _showTutorialDialog.value = false
+        sharedPrefs.edit().putBoolean("tutorial_completed", true).apply()
+    }
+
+    init {
+        // Automatically launch tutorial if they are logged in but didn't complete it yet
+        if (_isLoggedIn.value && !sharedPrefs.getBoolean("tutorial_completed", false)) {
+            _showTutorialDialog.value = true
+        }
+    }
 
     private val _showPremiumUpgradeDialog = MutableStateFlow(false)
     val showPremiumUpgradeDialog: StateFlow<Boolean> = _showPremiumUpgradeDialog.asStateFlow()
+
+    private val _showCheckoutDialog = MutableStateFlow(false)
+    val showCheckoutDialog: StateFlow<Boolean> = _showCheckoutDialog.asStateFlow()
+
+    private val _checkoutPlan = MutableStateFlow("EXPERT_PLUS")
+    val checkoutPlan: StateFlow<String> = _checkoutPlan.asStateFlow()
+
+    fun triggerCheckout(plan: String) {
+        setUserPlan(plan)
+    }
+
+    fun dismissCheckoutDialog() {
+        _showCheckoutDialog.value = false
+    }
 
     fun setUserPlan(plan: String) {
         _userPlan.value = plan
@@ -419,6 +452,7 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
 
         _isLoggedIn.value = true
         _isOnboarded.value = true
+        _showTutorialDialog.value = true
 
         viewModelScope.launch {
             _isLoading.value = true
@@ -467,6 +501,7 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
 
         _isLoggedIn.value = true
         _isOnboarded.value = true
+        _showTutorialDialog.value = true
 
         viewModelScope.launch {
             _isLoading.value = true
@@ -499,6 +534,7 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
         _isGoogleConnected.value = true
         _isLoggedIn.value = true
         _isOnboarded.value = true
+        _showTutorialDialog.value = true
         sharedPrefs.edit()
             .putBoolean("is_logged_in", true)
             .putString("account_type", _accountType.value)
@@ -614,13 +650,13 @@ class BusinessViewModel(application: Application) : AndroidViewModel(application
         _currentTab.value = "home"
         
         _hasSelectedAccountType.value = false
-        _userPlan.value = "FREE"
+        _userPlan.value = "EXPERT_PLUS"
         _accountType.value = "PERSONAL"
         sharedPrefs.edit()
             .putBoolean("is_logged_in", false)
             .putBoolean("has_selected_account_type", false)
             .putString("account_type", "PERSONAL")
-            .putString("user_plan", "FREE")
+            .putString("user_plan", "EXPERT_PLUS")
             .apply()
     }
 

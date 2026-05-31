@@ -186,7 +186,7 @@ fun SettingsScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 setupPreferenceRow(
-                    label = "Versão Gratuita",
+                    label = "Versão Gratuita Limitada",
                     description = "Limite de no máximo 2 contas simultâneas, com propagandas",
                     isSelected = userPlan == "FREE",
                     onSelect = { viewModel.setUserPlan("FREE") },
@@ -199,7 +199,7 @@ fun SettingsScreen(
                 )
 
                 setupPreferenceRow(
-                    label = "Versão PRO – R$ 9,90",
+                    label = "Versão PRO – Grátis (Liberado)",
                     description = "Sem propagandas, com sincronização de todas as contas disponíveis",
                     isSelected = userPlan == "PRO",
                     onSelect = { viewModel.setUserPlan("PRO") },
@@ -212,7 +212,7 @@ fun SettingsScreen(
                 )
 
                 setupPreferenceRow(
-                    label = "Versão Expert+ – R$ 19,90 / mês",
+                    label = "Versão Expert+ – Grátis (Completo, IA e Piloto Automático)",
                     description = "Diferencial de agendar posts, piloto automático e o app faz tudo!",
                     isSelected = userPlan == "EXPERT_PLUS",
                     onSelect = { viewModel.setUserPlan("EXPERT_PLUS") },
@@ -809,6 +809,55 @@ fun SettingsScreen(
                     onSelect = { viewModel.setSummaryLanguage("en") },
                     testTag = "lang_en"
                 )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Ajuda e Aprendizado
+        Text(
+            text = "Ajuda e Aprendizado",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.triggerTutorial() }
+                        .padding(vertical = 4.dp)
+                        .testTag("settings_relaunch_tutorial_row"),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Tutorial do Aplicativo",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Reveja o guia passo a passo explicativo das principais ferramentas do app.",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.Help,
+                        contentDescription = "Ver Tutorial",
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
             }
         }
 

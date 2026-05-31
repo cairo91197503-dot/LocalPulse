@@ -62,13 +62,15 @@ fun MainApp(
         // App Main Shell Scaffold
         val userPlan by viewModel.userPlan.collectAsState()
         val showPremiumUpgradeDialog by viewModel.showPremiumUpgradeDialog.collectAsState()
+        val showCheckoutDialog by viewModel.showCheckoutDialog.collectAsState()
+        val checkoutPlan by viewModel.checkoutPlan.collectAsState()
 
         if (showPremiumUpgradeDialog) {
             AlertDialog(
                 onDismissRequest = { viewModel.dismissPremiumUpgradeDialog() },
                 title = {
                     Text(
-                        text = "Limite de Contas Atingido",
+                        text = "Opções do PulsePersonal",
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -76,7 +78,7 @@ fun MainApp(
                 text = {
                     Column {
                         Text(
-                            text = "Você está utilizando a versão Gratuita do PulsePersonal, que permite conectar no máximo duas contas simultâneas (incluindo o perfil do Google).\n\nAssine um de nossos planos para sincronizar todas as mídias sociais e remover propagandas:",
+                            text = "Por favor, ative uma das versões ampliadas abaixo, que agora estão inteiramente gratuitas e acessíveis:",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
                         )
@@ -85,7 +87,7 @@ fun MainApp(
                         // PRO PLAN SELECT CARD
                         Card(
                             onClick = {
-                                viewModel.setUserPlan("PRO")
+                                viewModel.triggerCheckout("PRO")
                                 viewModel.dismissPremiumUpgradeDialog()
                             },
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)),
@@ -100,7 +102,7 @@ fun MainApp(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text("Plano PRO", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                                    Text("R$ 9,90", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                    Text("Grátis", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("Sincronize as contas disponíveis e remova propagandas.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
@@ -112,7 +114,7 @@ fun MainApp(
                         // EXPERT+ PLAN SELECT CARD
                         Card(
                             onClick = {
-                                viewModel.setUserPlan("EXPERT_PLUS")
+                                viewModel.triggerCheckout("EXPERT_PLUS")
                                 viewModel.dismissPremiumUpgradeDialog()
                             },
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.05f)),
@@ -127,7 +129,7 @@ fun MainApp(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text("Plano EXPERT+", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
-                                    Text("R$ 19,90/mês", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                                    Text("Grátis", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("Agendador inteligente de posts, piloto automático total e sem anúncios.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
@@ -146,6 +148,16 @@ fun MainApp(
                 shape = RoundedCornerShape(16.dp)
             )
         }
+
+        if (showCheckoutDialog) {
+            com.example.ui.screens.PaymentCheckoutDialog(
+                plan = checkoutPlan,
+                onDismiss = { viewModel.dismissCheckoutDialog() },
+                viewModel = viewModel
+            )
+        }
+
+        AppTutorialDialog(viewModel = viewModel)
 
         val postNotificationAlert by viewModel.postNotificationAlert.collectAsState()
         val pendingNotificationPost by viewModel.pendingNotificationPost.collectAsState()
