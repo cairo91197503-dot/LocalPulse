@@ -1,6 +1,8 @@
 {
   "name": "PulsePersonal",
-  "description": "Gerencie seu engajamento e presença pessoal nas redes sociais em tempo real, sem fins comerciais, com resumos semanais de sentimento e sugestões de respostas inteligentes geradas por IA.",
+  "description": "Premium personal metrics and pulse tracking app built with Jetpack Compose.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

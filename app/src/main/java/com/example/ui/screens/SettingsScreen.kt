@@ -1043,3 +1043,43 @@ fun setupPreferenceRow(
         )
     }
 }
+
+@Composable
+fun OfflineIndicatorBanner() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("offline_indicator_banner"),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.CloudOff,
+                contentDescription = "Modo Offline",
+                tint = MaterialTheme.colorScheme.onErrorContainer
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column {
+                Text(
+                    text = "Sem conexão com a Internet",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+                Text(
+                    text = "Você está visualizando dados em cache local.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+                )
+            }
+        }
+    }
+}
+

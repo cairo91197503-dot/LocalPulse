@@ -1,5 +1,6 @@
 package com.example.ui.theme
 
+import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -8,49 +9,68 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
-private val DarkColorScheme =
-  darkColorScheme(
-    primary = PrimaryDark,
-    secondary = SecondaryDark,
-    background = BackgroundDark,
-    surface = SurfaceDark,
-    onPrimary = Color(0xFF003258),
-    onSecondary = Color(0xFF00390E),
-    onBackground = Color(0xFFE2E2E6),
-    onSurface = Color(0xFFE2E2E6)
-  )
+// Custom Crimson & Teal palette matching heart health indicators
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFFE57373),     // Heart Crimson
+    secondary = Color(0xFF4DB6AC),   // Pulse Teal
+    tertiary = Color(0xFFFFB74D),    // Amber Warning
+    background = Color(0xFF121212),  // Deep Slate
+    surface = Color(0xFF1E1E1E),     // Dark Card
+    onPrimary = Color(0xFF4A0E17),
+    onSecondary = Color(0xFF003732),
+    onBackground = Color(0xFFE3E3E3),
+    onSurface = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFF8C1D31),
+    secondaryContainer = Color(0xFF005B5C)
+)
 
-private val LightColorScheme =
-  lightColorScheme(
-    primary = DeepTealBlue,
-    secondary = GoogleGreen,
-    background = SoftLightBg,
-    surface = Color.White,
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onBackground = Color(0xFF1E3A5F),
-    onSurface = Color(0xFF1E3A5F)
-  )
+private val LightColorScheme = lightColorScheme(
+    primary = Color(0xFFD32F2F),     // Strong Crimson
+    secondary = Color(0xFF00897B),   // Darker Teal
+    tertiary = Color(0xFFEF6C00),    // Alert Orange
+    background = Color(0xFFF9F9F9),  // Light Clean Background
+    surface = Color(0xFFFFFFFF),     // White Card
+    onPrimary = Color(0xFFFFFFFF),
+    onSecondary = Color(0xFFFFFFFF),
+    onBackground = Color(0xFF212121),
+    onSurface = Color(0xFF212121),
+    primaryContainer = Color(0xFFFFDAD9),
+    secondaryContainer = Color(0xFFCCE8E6)
+)
 
 @Composable
-fun LocalPulseTheme(
-  darkTheme: Boolean = isSystemInDarkTheme(),
-  dynamicColor: Boolean = false, // Disable to force our bespoke branding
-  content: @Composable () -> Unit,
+fun AppTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    // Dynamic color is available on Android 12+
+    dynamicColor: Boolean = false,
+    content: @Composable () -> Unit
 ) {
-  val colorScheme =
-    when {
-      dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-        val context = LocalContext.current
-        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-      }
-
-      darkTheme -> DarkColorScheme
-      else -> LightColorScheme
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
     }
 
-  MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+    MaterialTheme(
+        colorScheme = colorScheme,
+        content = content
+    )
 }
