@@ -6,13 +6,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example"
+    namespace = "com.aistudio.localpulse"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.aistudio.pulsepersonal.qyzvpx"
+        applicationId = "com.aistudio.localpulse.hswtxb"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -24,7 +24,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

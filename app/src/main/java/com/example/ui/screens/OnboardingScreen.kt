@@ -179,7 +179,7 @@ fun OnboardingScreen(
         ) {
             // Header Logo
             Image(
-                painter = painterResource(com.example.R.drawable.img_app_logo_1780065100739),
+                painter = painterResource(com.aistudio.localpulse.R.drawable.img_app_logo_1780065100739),
                 contentDescription = "Logo PulsePersonal",
                 modifier = Modifier
                     .height(65.dp)

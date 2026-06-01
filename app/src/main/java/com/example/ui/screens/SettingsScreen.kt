@@ -34,6 +34,16 @@ fun SettingsScreen(
     val isOffline by viewModel.isOffline.collectAsState()
     val isSimulationModeActive by viewModel.isSimulationModeActive.collectAsState()
 
+    var planPendingCheckout by remember { mutableStateOf<String?>(null) }
+
+    planPendingCheckout?.let { pendingPlan ->
+        PaymentCheckoutDialog(
+            plan = pendingPlan,
+            onDismiss = { planPendingCheckout = null },
+            viewModel = viewModel
+        )
+    }
+
     // Connection states
     val isFacebookConnected by viewModel.isFacebookConnected.collectAsState()
     val isInstagramConnected by viewModel.isInstagramConnected.collectAsState()
@@ -187,7 +197,7 @@ fun SettingsScreen(
             Column(modifier = Modifier.padding(16.dp)) {
                 setupPreferenceRow(
                     label = "Versão Gratuita Limitada",
-                    description = "Limite de no máximo 2 contas simultâneas, com propagandas",
+                    description = "Limite de 2 contas simultâneas, com propagandas",
                     isSelected = userPlan == "FREE",
                     onSelect = { viewModel.setUserPlan("FREE") },
                     testTag = "settings_plan_free"
@@ -199,10 +209,12 @@ fun SettingsScreen(
                 )
 
                 setupPreferenceRow(
-                    label = "Versão PRO – Grátis (Liberado)",
-                    description = "Sem propagandas, com sincronização de todas as contas disponíveis",
+                    label = "Versão PRO",
+                    description = "Sem propagandas, com sincronização de todas as contas disponíveis — R$ 9,90/mês",
                     isSelected = userPlan == "PRO",
-                    onSelect = { viewModel.setUserPlan("PRO") },
+                    onSelect = {
+                        if (userPlan != "PRO") planPendingCheckout = "PRO"
+                    },
                     testTag = "settings_plan_pro"
                 )
 
@@ -212,10 +224,12 @@ fun SettingsScreen(
                 )
 
                 setupPreferenceRow(
-                    label = "Versão Expert+ – Grátis (Completo, IA e Piloto Automático)",
-                    description = "Diferencial de agendar posts, piloto automático e o app faz tudo!",
+                    label = "Versão Expert+",
+                    description = "Agenda posts, piloto automático e IA completa — R$ 19,90/mês",
                     isSelected = userPlan == "EXPERT_PLUS",
-                    onSelect = { viewModel.setUserPlan("EXPERT_PLUS") },
+                    onSelect = {
+                        if (userPlan != "EXPERT_PLUS") planPendingCheckout = "EXPERT_PLUS"
+                    },
                     testTag = "settings_plan_expert"
                 )
             }
