@@ -65,6 +65,14 @@ Para manter a segurança e evitar dados hardcoded no projeto, a chave da API do 
 
 ---
 
+## 🔑 Configuração do Firebase
+
+1. Acesse o [Firebase Console](https://console.firebase.google.com) e baixe o arquivo `google-services.json` do seu projeto.
+2. Copie o arquivo para `app/google-services.json`.
+3. O arquivo está no `.gitignore` e **nunca deve ser commitado**.
+
+---
+
 ## 📋 Pré-requisitos para a Google Play Console
 
 Para publicar e carregar com sucesso o LocalPulse na sua conta do desenvolvedor do Google Play Console, certifique-se de que os seguintes requisitos estão configurados:

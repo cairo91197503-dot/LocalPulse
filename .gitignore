@@ -16,3 +16,12 @@
 local.properties
 .env
 debug.keystore
+
+# Firebase secrets
+google-services.json
+app/google-services.json
+app/applet/app/google-services.json
+*.jks
+*.keystore
+debug.keystore
+debug.keystore.base64
