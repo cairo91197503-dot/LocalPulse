@@ -10,11 +10,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Rocket
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -38,19 +39,19 @@ fun AppTutorialDialog(
                 onClick = onDismiss,
                 modifier = Modifier.testTag("tutorial_done_button")
             ) {
-                Text("Understood")
+                Text("Entendido, vamos lá!")
             }
         },
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Info,
-                    contentDescription = "Tutorial Info",
+                    contentDescription = "Informações do Tutorial",
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Welcome to PulsePersonal",
+                    text = "Bem-vindo ao PulsePersonal 👋",
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -63,32 +64,48 @@ fun AppTutorialDialog(
                     .padding(vertical = 4.dp)
             ) {
                 Text(
-                    text = "Track your vital cardiovascular metrics and physical statistics in one place with these tools:",
+                    text = "Veja o que você pode fazer por aqui:",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
                 TutorialRow(
-                    icon = Icons.Default.Fingerprint,
-                    title = "Interactive Fingertip Scan",
-                    description = "Press and hold your index finger on the pulsing sensor. The app simulates optical photoplethysmogram (PPG) wave analysis to read real-time BPM and oxygen levels."
+                    icon = Icons.Default.Dashboard,
+                    title = "Painel de Reputação",
+                    description = "Acompanhe sua pontuação de reputação, análise de sentimento e feedbacks recebidos nas suas redes sociais em um só lugar."
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 TutorialRow(
-                    icon = Icons.Default.TrendingUp,
-                    title = "Track Key Vitals",
-                    description = "Log blood pressure (systolic & diastolic), oxygen saturation (SpO2 %), body weight, and height in the user metrics card to receive healthy trend indexes."
+                    icon = Icons.AutoMirrored.Filled.Send,
+                    title = "Agendamento de Posts",
+                    description = "Visualize e gerencie seus posts agendados e publicados no Instagram, Facebook, TikTok e YouTube diretamente pela aba Posts."
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 TutorialRow(
-                    icon = Icons.Default.Event,
-                    title = "Interactive Filters & History",
-                    description = "Filter readings by lifestyle activities (Resting, Active, Post-Workout) to observe how physical stress impacts your cardiovascular rhythm."
+                    icon = Icons.Default.AutoAwesome,
+                    title = "Sugestões por IA",
+                    description = "Receba sugestões automáticas de resposta para avaliações e ideias de conteúdo geradas pelo Gemini AI."
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                TutorialRow(
+                    icon = Icons.Default.Hub,
+                    title = "Integração de Redes",
+                    description = "Conecte suas contas do Instagram, Facebook, TikTok e WhatsApp na aba Ajustes para centralizar sua gestão."
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                TutorialRow(
+                    icon = Icons.Default.Rocket,
+                    title = "Piloto Automático",
+                    description = "No plano Expert+, ative o piloto automático para publicações e respostas gerenciadas pela IA sem intervenção manual."
                 )
             }
         },
