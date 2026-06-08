@@ -40,6 +40,17 @@ jobs:
         run: |
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
 
+      - name: Create fallback google-services.json if missing
+        run: |
+          if [ ! -f app/google-services.json ]; then
+            if [ -f app/google-services.json.example ]; then
+              cp app/google-services.json.example app/google-services.json
+              echo "Created app/google-services.json from example."
+            else
+              echo "No google-services.json example found!"
+            fi
+          fi
+
       - name: Build Unsigned Release AAB & APK
         run: ./gradlew bundleRelease assembleRelease --no-daemon
 
