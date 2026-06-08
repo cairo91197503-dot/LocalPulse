@@ -24,7 +24,9 @@ jobs:
           cache: 'gradle'
 
       - name: Grant Execute Permission to Gradle
-        run: chmod +x gradlew
+        run: |
+          sed -i -e 's/\r$//' gradlew
+          chmod +x gradlew
         continue-on-error: true
 
       - name: Create fallback gradlew if missing
