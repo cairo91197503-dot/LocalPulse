@@ -11,11 +11,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ui.screens.*
 import com.example.ui.viewmodel.BusinessViewModel
+import com.example.ui.viewmodel.AcademyViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material.icons.filled.School
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,86 +41,7 @@ fun MainApp(
     }
 
     if (!isLoggedIn) {
-        // Display a simplified login dashboard card that can be completed with a business title
-        var businessText by remember { mutableStateOf("") }
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(24.dp)
-                .testTag("login_screen_container"),
-            contentAlignment = androidx.compose.ui.Alignment.Center
-        ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .testTag("login_card"),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = "Pulse Logo",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(54.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Entrar no PulsePersonal",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Escolha um nome para seu perfil de marketing para começar.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    OutlinedTextField(
-                        value = businessText,
-                        onValueChange = { businessText = it },
-                        label = { Text("Nome da Marca ou Canal") },
-                        placeholder = { Text("Ex: Pulse Personal Creator") },
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("login_brand_input_field")
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = {
-                            if (businessText.trim().isNotBlank()) {
-                                viewModel.handleLogin(businessText.trim())
-                            }
-                        },
-                        enabled = businessText.trim().isNotBlank(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                            .testTag("login_submit_btn")
-                    ) {
-                        Text("Iniciar Gerenciador", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
-                    }
-                }
-            }
-        }
+        OnboardingScreen(viewModel = viewModel)
     } else {
         Scaffold(
             bottomBar = {
@@ -146,6 +72,18 @@ fun MainApp(
                         icon = { Icon(Icons.Default.ListAlt, contentDescription = "Cronograma") },
                         label = { Text("Posts") },
                         modifier = Modifier.testTag("nav_tab_posts")
+                    )
+                    NavigationBarItem(
+                        selected = activeTab == "academy",
+                        onClick = {
+                            activeTab = "academy"
+                            navController.navigate("academy") {
+                                popUpTo("home") { inclusive = false }
+                            }
+                        },
+                        icon = { Icon(Icons.Default.School, contentDescription = "Academy") },
+                        label = { Text("Academy") },
+                        modifier = Modifier.testTag("nav_tab_academy")
                     )
                     NavigationBarItem(
                         selected = activeTab == "settings",
@@ -190,6 +128,10 @@ fun MainApp(
                         }
                     )
                 }
+                composable("academy") {
+                    val academyViewModel: AcademyViewModel = viewModel()
+                    AcademyScreen(viewModel = academyViewModel)
+                }
                 composable("settings") {
                     var showPrivacyPolicy by remember { mutableStateOf(false) }
 
@@ -223,5 +165,3 @@ fun MainApp(
         }
     }
 }
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.shape.RoundedCornerShape

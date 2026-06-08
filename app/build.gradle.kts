@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -12,13 +13,28 @@ android {
         applicationId = "com.aistudio.localpulse.hswtxb"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 8
+        versionName = "0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Read GEMINI_API_KEY from .env file or system environment variables
+        val envFile = project.rootProject.file(".env")
+        var geminiApiKey = ""
+        if (envFile.exists()) {
+            envFile.readLines().forEach { line ->
+                if (line.trim().startsWith("GEMINI_API_KEY=")) {
+                    geminiApiKey = line.substringAfter("GEMINI_API_KEY=").trim().removeSurrounding("\"").removeSurrounding("'")
+                }
+            }
+        }
+        if (geminiApiKey.isEmpty()) {
+            geminiApiKey = System.getenv("GEMINI_API_KEY") ?: "PLACEHOLDER"
+        }
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
     }
 
     buildTypes {
@@ -37,6 +53,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -67,6 +84,28 @@ dependencies {
     // Navigation and Serialization
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.analytics)
+
+    // Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    annotationProcessor(libs.androidx.room.compiler)
+
+    // Coil
+    implementation(libs.coil.compose)
+
+    // Networking
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+    implementation(libs.retrofit)
+    implementation(libs.converter.moshi)
+
+    // Lifecycle
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     // Testing
     testImplementation("junit:junit:4.13.2")

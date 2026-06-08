@@ -45,7 +45,7 @@ import com.example.ui.viewmodel.BusinessViewModel
 @Composable
 fun OnboardingScreen(
     viewModel: BusinessViewModel,
-    onShowPrivacyPolicy: () -> Unit
+    onShowPrivacyPolicy: () -> Unit = {}
 ) {
     val isRegisterMode by viewModel.isRegisterMode.collectAsState()
     val accountType by viewModel.accountType.collectAsState()
