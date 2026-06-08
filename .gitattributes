@@ -1,0 +1,7 @@
+# Force Unix (LF) line endings for the gradlew script
+gradlew text eol=lf
+*.sh text eol=lf
+
+# Force Windows (CRLF) line endings for batch files
+*.bat text eol=crlf
+*.cmd text eol=crlf
