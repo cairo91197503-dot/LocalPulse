@@ -2,82 +2,61 @@ package com.example.data.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import kotlinx.serialization.Serializable
 
-@Serializable
-@Entity(tableName = "business_profiles")
-data class BusinessProfile(
-    @PrimaryKey val id: String,
-    val name: String,
-    val category: String,
-    val address: String,
-    val phone: String,
-    val website: String,
-    val hours: String,
-    val description: String,
-    val photosCount: Int,
-    val rating: Double,
-    val reviewsCount: Int,
-    val reviewsAnsweredCount: Int,
-    val postsRecentCount: Int,
-    val hasCompletenessError: Boolean,
-    val diagnosticScore: Int,
-    val lastDiagnosticTime: Long = System.currentTimeMillis()
-) {
-    val reviewsAnsweredPercent: Int
-        get() = if (reviewsCount > 0) (reviewsAnsweredCount * 100) / reviewsCount else 100
-}
-
-@Serializable
-@Entity(tableName = "business_reviews")
-data class Review(
-    @PrimaryKey val id: String,
-    val businessId: String,
-    val authorName: String,
-    val authorPhotoUrl: String?,
-    val rating: Int,
-    val text: String,
-    val publishTime: Long,
-    val responseText: String?,
-    val aiSuggestedResponse: String?,
-    val isResponsePending: Boolean = responseText.isNullOrBlank()
-)
-
-@Serializable
-@Entity(tableName = "post_suggestions")
-data class PostSuggestion(
+@Entity(tableName = "businesses")
+data class Business(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val businessId: String,
-    val title: String,
-    val content: String,
-    val category: String, // ex: "Oferta", "Novidade", "Evento"
-    val isSaved: Boolean = false,
-    val createdTime: Long = System.currentTimeMillis()
-)
-
-@Serializable
-data class DiagnosticResult(
-    val score: Int,
-    val correctList: List<String>,
-    val warningList: List<String>,
-    val improvementSuggestions: List<ImprovementCategory>,
-    val optimizedDescription: String
-)
-
-@Serializable
-data class ImprovementCategory(
-    val priority: String, // ex: "Alta", "Médiia", "Baixa"
-    val title: String,
+    val name: String,
+    val category: String, // Restaurant, Retail, Services, Health, Leisure
     val description: String,
-    val actionLabel: String
+    val rating: Float,
+    val address: String,
+    val contact: String,
+    val recommendedCount: Int = 0
 )
 
-@Serializable
-data class AcademyArticle(
-    val id: String,
-    val title: String,
+@Entity(tableName = "academies")
+data class Academy(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val name: String,
+    val category: String, // Technology, Language, Arts, Business, Cooking
     val description: String,
-    val category: String, // "Como Iniciar", "SEO Local", "Avaliações", "Posts Otimizados"
-    val contentMarkdown: String,
-    val isRead: Boolean = false
+    val coursesCount: Int,
+    val address: String,
+    val contact: String,
+    val certificateInfo: String
+)
+
+@Entity(tableName = "courses")
+data class Course(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val academyId: Int,
+    val title: String,
+    val level: String, // Beginner, Intermediate, Advanced
+    val duration: String, // e.g. "6 weeks", "3 months"
+    val syllabusOverview: String,
+    val userEnrolled: Boolean = false
+)
+
+@Entity(tableName = "reviews")
+data class Review(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val targetId: Int,
+    val targetType: String, // "business" or "academy"
+    val userEmail: String,
+    val reviewText: String,
+    val rating: Float,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+@Entity(tableName = "enrollments")
+data class Enrollment(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val courseId: Int,
+    val academyId: Int,
+    val courseTitle: String,
+    val userEmail: String,
+    val status: String, // "Enrolled", "Completed"
+    val studyPathSuggestion: String = "",
+    val timestamp: Long = System.currentTimeMillis()
 )

@@ -2,73 +2,72 @@ package com.example.data.repository
 
 import com.example.data.api.GeminiClient
 import com.example.data.db.BusinessDao
-import com.example.data.models.BusinessProfile
-import com.example.data.models.DiagnosticResult
-import com.example.data.models.PostSuggestion
+import com.example.data.db.ReviewDao
+import com.example.data.models.Business
 import com.example.data.models.Review
 import kotlinx.coroutines.flow.Flow
 
-class BusinessRepository(private val businessDao: BusinessDao) {
+class BusinessRepository(
+    private val businessDao: BusinessDao,
+    private val reviewDao: ReviewDao
+) {
+    val allBusinesses: Flow<List<Business>> = businessDao.getAllBusinesses()
 
-    // --- Profile Operations ---
-    
-    fun getAllProfiles(): Flow<List<BusinessProfile>> = businessDao.getAllProfiles()
-
-    fun getProfileById(id: String): Flow<BusinessProfile?> = businessDao.getProfileById(id)
-
-    suspend fun insertProfile(profile: BusinessProfile) = businessDao.insertProfile(profile)
-
-    suspend fun insertProfiles(profiles: List<BusinessProfile>) = businessDao.insertProfiles(profiles)
-
-    suspend fun deleteProfile(id: String) = businessDao.deleteProfile(id)
-
-    // --- Review Operations ---
-
-    fun getReviewsForBusiness(businessId: String): Flow<List<Review>> = businessDao.getReviewsForBusiness(businessId)
-
-    suspend fun updateReview(review: Review) = businessDao.updateReview(review)
-
-    suspend fun insertReviews(reviews: List<Review>) = businessDao.insertReviews(reviews)
-
-    // --- Post Suggestion Operations ---
-
-    fun getPostSuggestions(businessId: String): Flow<List<PostSuggestion>> = businessDao.getPostSuggestions(businessId)
-
-    suspend fun insertPostSuggestion(suggestion: PostSuggestion) = businessDao.insertPostSuggestion(suggestion)
-
-    suspend fun updatePostSuggestion(suggestion: PostSuggestion) = businessDao.updatePostSuggestion(suggestion)
-
-    suspend fun deletePostSuggestion(id: Int) = businessDao.deletePostSuggestion(id)
-
-    // --- AI/Gemini Operations ---
-
-    suspend fun analyzeProfile(profile: BusinessProfile): DiagnosticResult {
-        val result = GeminiClient.analyzeBusinessProfile(profile)
-        // Optionally cache details in DB
-        val updatedProfile = profile.copy(
-            diagnosticScore = result.score,
-            lastDiagnosticTime = System.currentTimeMillis()
-        )
-        businessDao.insertProfile(updatedProfile)
-        return result
+    fun getBusinessesByCategory(category: String): Flow<List<Business>> {
+        return businessDao.getBusinessesByCategory(category)
     }
 
-    suspend fun generateReviewAnswer(businessName: String, review: Review): String {
-        val reply = GeminiClient.generateReviewReply(businessName, review.text, review.rating)
-        val updatedReview = review.copy(aiSuggestedResponse = reply)
-        businessDao.updateReview(updatedReview)
-        return reply
+    suspend fun getBusinessById(id: Int): Business? {
+        return businessDao.getBusinessById(id)
     }
 
-    suspend fun generatePostDraft(businessId: String, businessName: String, category: String, theme: String): PostSuggestion {
-        val (title, content) = GeminiClient.generatePostSuggestion(businessName, category, theme)
-        val suggestion = PostSuggestion(
-            businessId = businessId,
-            title = title,
-            content = content,
-            category = category
-        )
-        businessDao.insertPostSuggestion(suggestion)
-        return suggestion
+    suspend fun insertBusiness(business: Business): Long {
+        return businessDao.insertBusiness(business)
+    }
+
+    suspend fun recommendBusiness(id: Int) {
+        businessDao.incrementRecommendCount(id)
+    }
+
+    fun getReviewsForBusiness(businessId: Int): Flow<List<Review>> {
+        return reviewDao.getReviewsForTarget(businessId, "business")
+    }
+
+    suspend fun insertReview(review: Review): Long {
+        return reviewDao.insertReview(review)
+    }
+
+    /**
+     * Use Gemini to provide customized business matches based on list of actual local businesses.
+     */
+    suspend fun getAiBusinessRecommendations(userPreference: String, actualBusinesses: List<Business>): String {
+        if (actualBusinesses.isEmpty()) {
+            return "No businesses available to recommend."
+        }
+
+        val bizContext = actualBusinesses.joinToString("\n") {
+            "- ${it.name} (${it.category}) at ${it.address}. Desc: ${it.description}. Rating: ${it.rating}★, Recommended: ${it.recommendedCount} times."
+        }
+
+        val prompt = """
+            The user is searching for something in our local city. Here is their preference or question:
+            "$userPreference"
+
+            Here are the actual registered businesses currently in our LocalPulse directories:
+            $bizContext
+
+            Please analyze the user's preference and recommend the MOST relevant business or businesses from the list above. 
+            Give a lively, friendly local recommendation that highlights why it is a great match. 
+            If none of the businesses matches perfectly, recommend the closest useful option and suggest how they could check it out anyway.
+            Keep your recommendation short (2-3 paragraphs) and conversational.
+        """.trimIndent()
+
+        val systemInstruction = """
+            You are 'LocalPulse Assistant', a lively, knowledgeable, and enthusiastic AI guide for our local community. 
+            You are passionate about helping users find the best spots, hidden gems, and community businesses.
+            Always maintain a helpful, warm, neighborly tone.
+        """.trimIndent()
+
+        return GeminiClient.generateResponse(prompt, systemInstruction)
     }
 }

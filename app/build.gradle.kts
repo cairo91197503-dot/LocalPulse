@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
-//    alias(libs.plugins.secrets)
+    alias(libs.plugins.secrets)
 }
 
 android {
@@ -90,7 +90,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
 
-//secrets {
-//    propertiesFileName = ".env"
-//    defaultPropertiesFileName = ".env.example"
-//}
+secrets {
+    propertiesFileName = ".env"
+    defaultPropertiesFileName = ".env.example"
+}

@@ -1,6 +1,6 @@
 {
-  "name": "LocalPulse",
-  "description": "IA diagnósticos e otimização para o seu perfil do Google Meu Negócio",
+  "name": "Local Pulse",
+  "description": "Connecting people with local academies, courses, businesses, and AI-driven recommendations in their community.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

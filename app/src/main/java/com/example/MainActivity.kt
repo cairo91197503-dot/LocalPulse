@@ -10,9 +10,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Mandatory edge-to-edge rendering configuration
+        // Enable edge-to-edge support as mandated
         enableEdgeToEdge()
-        
+
         setContent {
             MainApp()
         }
