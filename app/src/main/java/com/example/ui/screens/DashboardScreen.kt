@@ -1,1043 +1,907 @@
 package com.example.ui.screens
 
+import android.widget.Toast
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.viewmodel.PulseViewModel
-import com.example.ui.viewmodel.PulseRecord
-import com.example.ui.viewmodel.HealthProfile
-import com.example.ui.viewmodel.ScanStage
-import kotlinx.coroutines.delay
-import kotlin.math.sin
+import com.example.data.models.*
+import com.example.ui.viewmodel.BusinessViewModel
+import com.example.ui.viewmodel.UiState
+import com.example.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    viewModel: PulseViewModel,
-    onShowTutorial: () -> Unit
+    viewModel: BusinessViewModel,
+    profile: BusinessProfile,
+    onBack: () -> Unit
 ) {
-    val records by viewModel.records.collectAsState()
-    val profile by viewModel.profile.collectAsState()
-    val scanStage by viewModel.scanStage.collectAsState()
-    val scanProgress by viewModel.scanProgress.collectAsState()
-    val heartRateSim by viewModel.currentHeartRateSim.collectAsState()
-    val spo2Sim by viewModel.currentSpO2Sim.collectAsState()
-    val scanMessage by viewModel.scanMessage.collectAsState()
-    val filter by viewModel.selectedFilter.collectAsState()
+    val context = LocalContext.current
+    var selectedTab by remember { mutableIntStateOf(0) } // 0: Diagnóstico, 1: Avaliações, 2: Posts
 
-    var showManualAddDialog by remember { mutableStateOf(false) }
-    var showProfileDialog by remember { mutableStateOf(false) }
+    val reviews by viewModel.reviews.collectAsState()
+    val savedPosts by viewModel.savedPosts.collectAsState()
+    val diagnosticState by viewModel.diagnosticState.collectAsState()
 
-    // Screen dimensions to support Adaptive layouts
-    val configuration = LocalConfiguration.current
-    val isTablet = configuration.screenWidthDp >= 600
+    // Run auto-diagnostic on start if status is idle to give premium immediate UX
+    LaunchedEffect(profile.id) {
+        if (diagnosticState is UiState.Idle) {
+            viewModel.runDiagnostic(profile)
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Favorite,
-                            contentDescription = "Pulse Tracking Logo",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                    Column {
                         Text(
-                            text = "PulsePersonal",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = (-0.5).sp
-                            )
+                            text = profile.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = profile.category,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = PrimaryCyan
+                        )
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
                         )
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = onShowTutorial,
-                        modifier = Modifier.testTag("tutorial_top_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Help,
-                            contentDescription = "Show Tutorial",
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                    IconButton(
-                        onClick = { showProfileDialog = true },
-                        modifier = Modifier.testTag("profile_top_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
+                    IconButton(onClick = { viewModel.runDiagnostic(profile) }) {
+                        Icon(imageVector = Icons.Default.Refresh, contentDescription = "Recarregar", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBg)
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showManualAddDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.testTag("manual_entry_fab")
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Log pulse manually")
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { innerPadding ->
-        
-        // Responsive Adaptive Grid Split
-        if (isTablet) {
-            // Horizontal split
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(16.dp)
-            ) {
-                // Left Column: Interactive Scanner & Profiles
-                Column(
-                    modifier = Modifier
-                        .weight(1.1f)
-                        .fillMaxHeight()
-                        .padding(end = 12.dp)
-                ) {
-                    ScannerSection(
-                        scanStage = scanStage,
-                        scanProgress = scanProgress,
-                        heartRateSim = heartRateSim,
-                        spo2Sim = spo2Sim,
-                        scanMessage = scanMessage,
-                        onScanStart = { viewModel.startFingerScan() },
-                        onScanCancel = { viewModel.cancelScan() }
+        containerColor = DarkBg
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            // Material 3 Custom Tab Row
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = DarkBg,
+                contentColor = PrimaryPurple,
+                indicator = { tabPositions ->
+                    TabRowDefaults.SecondaryIndicator(
+                        Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                        color = PrimaryPurple
                     )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Tab(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    text = { Text("Diagnóstico", fontWeight = FontWeight.Bold, fontSize = 13.sp) },
+                    icon = { Icon(imageVector = Icons.Default.Assessment, contentDescription = null) },
+                    selectedContentColor = PrimaryPurple,
+                    unselectedContentColor = TextSecondary
+                )
+                Tab(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    text = { Text("Avaliações", fontWeight = FontWeight.Bold, fontSize = 13.sp) },
+                    icon = { Icon(imageVector = Icons.Default.Star, contentDescription = null) },
+                    selectedContentColor = PrimaryPurple,
+                    unselectedContentColor = TextSecondary
+                )
+                Tab(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    text = { Text("Criar Posts", fontWeight = FontWeight.Bold, fontSize = 13.sp) },
+                    icon = { Icon(imageVector = Icons.Default.Campaign, contentDescription = null) },
+                    selectedContentColor = PrimaryPurple,
+                    unselectedContentColor = TextSecondary
+                )
+            }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    ProfileMetricsSummaryView(
+            // Tab Content
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                when (selectedTab) {
+                    0 -> DiagnosticTab(
                         profile = profile,
-                        avgHR = viewModel.getAverageHeartRate(),
-                        avgSpO2 = viewModel.getAverageSpO2(),
-                        onEdit = { showProfileDialog = true }
+                        diagnosticState = diagnosticState,
+                        onReRun = { viewModel.runDiagnostic(profile) }
                     )
-                }
-
-                // Right Column: Filtered List of Cardio History logs
-                Column(
-                    modifier = Modifier
-                        .weight(1.0f)
-                        .fillMaxHeight()
-                        .padding(start = 12.dp)
-                ) {
-                    HistoryLogsSection(
-                        records = records,
-                        activeFilter = filter,
-                        onFilterChanged = { viewModel.setFilter(it) },
-                        onDelete = { viewModel.deleteRecord(it) }
+                    1 -> ReviewsTab(
+                        viewModel = viewModel,
+                        profile = profile,
+                        reviews = reviews
+                    )
+                    2 -> PostsTab(
+                        viewModel = viewModel,
+                        savedPosts = savedPosts
                     )
                 }
             }
-        } else {
-            // Vertical Stack for standard mobiles
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-            ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+        }
+    }
+}
+
+// ==================== DIAGNOSTIC TAB ====================
+
+@Composable
+fun DiagnosticTab(
+    profile: BusinessProfile,
+    diagnosticState: UiState<DiagnosticResult>,
+    onReRun: () -> Unit
+) {
+    var showDescSheet by remember { mutableStateOf(false) }
+    var currentOptimizedDesc by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    when (diagnosticState) {
+        is UiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    CircularProgressIndicator(color = PrimaryPurple)
+                    Text("Gemini auditando seu perfil do Google...", color = TextSecondary, fontSize = 14.sp)
+                }
+            }
+        }
+        is UiState.Error -> {
+            Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    Icon(imageVector = Icons.Default.ErrorOutline, contentDescription = null, tint = Color.Red, modifier = Modifier.size(48.dp))
+                    Text("Erro ao conectar ao Gemini: ${diagnosticState.message}", color = TextSecondary, textAlign = TextAlign.Center)
+                    Button(onClick = onReRun, colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)) {
+                        Text("Tentar Novamente")
+                    }
+                }
+            }
+        }
+        is UiState.Success -> {
+            val data = diagnosticState.data
+            currentOptimizedDesc = data.optimizedDescription
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    // Score Gauge Card
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = CardBg),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, CardBorder, RoundedCornerShape(16.dp))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(20.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(20.dp)
+                        ) {
+                            // Circular score container
+                            Box(
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .background(Color(0xFF20253F), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "${data.score}%",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = PrimaryPurple
+                                )
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Otimização do Perfil",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = when {
+                                        data.score >= 90 -> "Perfil muito excelente! Excelente ranqueamento local."
+                                        data.score >= 70 -> "Boa configuração, mas você está perdendo clientes devido a detalhes cruciais."
+                                        else -> "Alerta: Perfil mal otimizado. Risco de invisibilidade nos resultados de busca."
+                                    },
+                                    fontSize = 12.sp,
+                                    color = TextSecondary,
+                                    lineHeight = 16.sp
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // AI Optimized description call to action
+                item {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF16252C)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, Color(0xFF1E353F), RoundedCornerShape(16.dp)),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .clickable { showDescSheet = true },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color(0xFF1F3D4A), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    tint = PrimaryCyan
+                                )
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    "Descrição Otimizada por IA Pronta!",
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary,
+                                    fontSize = 14.sp
+                                )
+                                Text(
+                                    "Toque para visualizar e copiar a descrição de conversão local.",
+                                    fontSize = 12.sp,
+                                    color = TextSecondary
+                                )
+                            }
+                            Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = TextSecondary)
+                        }
+                    }
+                }
+
+                // Correct items ✅
+                if (data.correctList.isNotEmpty()) {
                     item {
-                        ScannerSection(
-                            scanStage = scanStage,
-                            scanProgress = scanProgress,
-                            heartRateSim = heartRateSim,
-                            spo2Sim = spo2Sim,
-                            scanMessage = scanMessage,
-                            onScanStart = { viewModel.startFingerScan() },
-                            onScanCancel = { viewModel.cancelScan() }
+                        Text("O Que Está Correto ✅", fontWeight = FontWeight.Bold, color = SuccessGreen, fontSize = 16.sp)
+                    }
+                    items(data.correctList) { itemText ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF101B17), RoundedCornerShape(10.dp))
+                                .border(1.dp, Color(0xFF123F1B), RoundedCornerShape(10.dp))
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = SuccessGreen, modifier = Modifier.size(18.dp))
+                            Text(itemText, color = TextPrimary, fontSize = 13.sp)
+                        }
+                    }
+                }
+
+                // Problem items ⚠️
+                if (data.warningList.isNotEmpty()) {
+                    item {
+                        Text("O Que Está Faltando ou Errado ⚠️", fontWeight = FontWeight.Bold, color = WarningAmber, fontSize = 16.sp)
+                    }
+                    items(data.warningList) { itemText ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF221F11), RoundedCornerShape(10.dp))
+                                .border(1.dp, Color(0xFF4C3F1B), RoundedCornerShape(10.dp))
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.Warning, contentDescription = null, tint = WarningAmber, modifier = Modifier.size(18.dp))
+                            Text(itemText, color = TextPrimary, fontSize = 13.sp)
+                        }
+                    }
+                }
+
+                // Actionable priority improvements suggestions
+                if (data.improvementSuggestions.isNotEmpty()) {
+                    item {
+                        Text("Plano de Ação Sugerido por IA", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 16.sp)
+                    }
+                    items(data.improvementSuggestions) { suggest ->
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = CardBg),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(1.dp, CardBorder, RoundedCornerShape(12.dp))
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(suggest.title, fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 14.sp)
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                when (suggest.priority) {
+                                                    "Alta" -> Color(0xFF3F191D)
+                                                    "Média" -> Color(0xFF3B2F11)
+                                                    else -> Color(0xFF182E3F)
+                                                },
+                                                RoundedCornerShape(4.dp)
+                                            )
+                                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            suggest.priority,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = when (suggest.priority) {
+                                                "Alta" -> Color(0xFFFF5252)
+                                                "Média" -> WarningAmber
+                                                else -> PrimaryCyan
+                                            }
+                                        )
+                                    }
+                                }
+                                Text(
+                                    suggest.description,
+                                    fontSize = 12.sp,
+                                    color = TextSecondary,
+                                    modifier = Modifier.padding(top = 8.dp),
+                                    lineHeight = 16.sp
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Button(
+                                    onClick = { 
+                                        Toast.makeText(context, "Ação '${suggest.title}' iniciada!", Toast.LENGTH_SHORT).show()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (suggest.priority == "Alta") PrimaryPurple else Color(0xFF2E354F)
+                                    ),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.align(Alignment.End)
+                                ) {
+                                    Text(suggest.actionLabel, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+            }
+        }
+        else -> {}
+    }
+
+    // AI Description Viewer Dialog Modal
+    if (showDescSheet) {
+        AlertDialog(
+            onDismissRequest = { showDescSheet = false },
+            title = { Text("Descrição Otimizada (SEO Local)", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Ricas palavras-chave incorporadas de forma humana para subir nos resultados do ranking dos mapas eletrónicos.",
+                        fontSize = 12.sp,
+                        color = TextMuted
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF0F121F), RoundedCornerShape(12.dp))
+                            .border(1.dp, CardBorder, RoundedCornerShape(12.dp))
+                            .padding(14.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Text(
+                            text = currentOptimizedDesc,
+                            color = TextPrimary,
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDescSheet = false
+                        Toast.makeText(context, "Copiado com sucesso para a área de transferência!", Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)
+                ) {
+                    Icon(imageVector = Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Copiar Descrição")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDescSheet = false }) {
+                    Text("Fechar")
+                }
+            }
+        )
+    }
+}
+
+// ==================== REVIEWS TAB ====================
+
+@Composable
+fun ReviewsTab(
+    viewModel: BusinessViewModel,
+    profile: BusinessProfile,
+    reviews: List<Review>
+) {
+    val reviewReplyState by viewModel.reviewReplyState.collectAsState()
+    val context = LocalContext.current
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            // Review Stats Summary
+            Card(
+                colors = CardDefaults.cardColors(containerColor = CardBg),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, CardBorder, RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("${profile.rating}", fontSize = 32.sp, fontWeight = FontWeight.Black, color = TextPrimary)
+                            Icon(imageVector = Icons.Default.Star, contentDescription = "Estrela", tint = WarningAmber, modifier = Modifier.size(24.dp))
+                        }
+                        Text("Nota do Google", fontSize = 12.sp, color = TextSecondary)
+                    }
+                    Divider(modifier = Modifier.height(48.dp).width(1.dp), color = CardBorder)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("${profile.reviewsAnsweredPercent}%", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = SuccessGreen)
+                        Text("Resp. Efetuadas", fontSize = 12.sp, color = TextSecondary)
+                    }
+                    Divider(modifier = Modifier.height(48.dp).width(1.dp), color = CardBorder)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("${profile.reviewsCount}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = PrimaryCyan)
+                        Text("Total Recebidas", fontSize = 12.sp, color = TextSecondary)
+                    }
+                }
+            }
+        }
+
+        item {
+            Text("Avaliações de Clientes", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 16.sp)
+        }
+
+        if (reviews.isNotEmpty()) {
+            items(reviews) { review ->
+                var customReplyText by remember { mutableStateOf("") }
+                var isEditingReply by remember { mutableStateOf(false) }
+
+                val currentReplyUiState = reviewReplyState[review.id] ?: UiState.Idle
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = CardBg),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, CardBorder, RoundedCornerShape(12.dp))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(review.authorName, fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 14.sp)
+                            // Star Rating Row
+                            Row {
+                                repeat(5) { ind ->
+                                    Icon(
+                                        imageVector = Icons.Default.Star,
+                                        contentDescription = null,
+                                        tint = if (ind < review.rating) WarningAmber else TextMuted,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        Text(review.text, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
+
+                        // If response already exists in DB
+                        if (!review.responseText.isNullOrBlank()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFF13172E), RoundedCornerShape(8.dp))
+                                    .padding(12.dp)
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text("Resposta Ativa no Google:", color = PrimaryCyan, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                    Text(review.responseText, color = TextPrimary, fontSize = 12.sp)
+                                }
+                            }
+                        } else {
+                            // Responses generator section with Gemini
+                            when (currentReplyUiState) {
+                                is UiState.Loading -> {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(48.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(color = PrimaryCyan, modifier = Modifier.size(24.dp))
+                                    }
+                                }
+                                is UiState.Error -> {
+                                    Text("Erro ao gerar resposta: ${currentReplyUiState.message}", color = Color.Red, fontSize = 12.sp)
+                                }
+                                is UiState.Success -> {
+                                    val suggestedText = currentReplyUiState.data
+                                    if (!isEditingReply) {
+                                        customReplyText = suggestedText
+                                        isEditingReply = true
+                                    }
+                                    
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text("Sugestão de Resposta do Gemini (Edite se quiser):", color = PrimaryPurple, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                        OutlinedTextField(
+                                            value = customReplyText,
+                                            onValueChange = { customReplyText = it },
+                                            minLines = 3,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                focusedBorderColor = PrimaryPurple,
+                                                unfocusedBorderColor = CardBorder
+                                            ),
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier.align(Alignment.End)
+                                        ) {
+                                            TextButton(onClick = { isEditingReply = false }) {
+                                                Text("Cancelar", color = TextSecondary)
+                                            }
+                                            Button(
+                                                onClick = {
+                                                    viewModel.applyReviewResponseText(review, customReplyText)
+                                                    isEditingReply = false
+                                                },
+                                                colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen)
+                                            ) {
+                                                Text("Enviar Resposta")
+                                            }
+                                        }
+                                    }
+                                }
+                                else -> {
+                                    // Default idle response action button
+                                    Button(
+                                        onClick = { viewModel.requestReviewReply(profile.name, review) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E284B)),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.align(Alignment.End).testTag("ai_reply_btn_${review.id}")
+                                    ) {
+                                        Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, tint = PrimaryCyan, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("Gerar Resposta IA", color = Color.White, fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+// ==================== POSTS TAB ====================
+
+@Composable
+fun PostsTab(
+    viewModel: BusinessViewModel,
+    savedPosts: List<PostSuggestion>
+) {
+    var themeFocus by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("Oferta") }
+    val postGenerationState by viewModel.postGenerationState.collectAsState()
+    val context = LocalContext.current
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            // Input widget to construct post parameters
+            Card(
+                colors = CardDefaults.cardColors(containerColor = CardBg),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, CardBorder, RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Text(
+                        "Criar Postagem com Gemini",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+
+                    // Category Selector
+                    Column {
+                        Text("Tipo de Postagem", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(bottom = 6.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf("Oferta", "Novidade", "Evento").forEach { cat ->
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .background(
+                                            if (selectedCategory == cat) PrimaryPurple else Color(0xFF1E2034),
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                        .border(
+                                            width = 1.dp,
+                                            color = if (selectedCategory == cat) PrimaryPurple else CardBorder,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable { selectedCategory = cat }
+                                        .padding(vertical = 10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        cat,
+                                        color = if (selectedCategory == cat) Color.White else TextSecondary,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Theme text instruction
+                    Column {
+                        Text("Qual o foco do post?", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(bottom = 6.dp))
+                        OutlinedTextField(
+                            value = themeFocus,
+                            onValueChange = { themeFocus = it },
+                            placeholder = { Text("Ex: Inauguração do wi-fi, brunch aos domingos ou 10% de desconto no pão de queijo") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("post_theme_input"),
+                            shape = RoundedCornerShape(10.dp)
                         )
                     }
 
-                    item {
-                        ProfileMetricsSummaryView(
-                            profile = profile,
-                            avgHR = viewModel.getAverageHeartRate(),
-                            avgSpO2 = viewModel.getAverageSpO2(),
-                            onEdit = { showProfileDialog = true }
-                        )
+                    Button(
+                        onClick = {
+                            if (themeFocus.isNotBlank()) {
+                                viewModel.generatePostSuggestion(selectedCategory, themeFocus)
+                            } else {
+                                Toast.makeText(context, "Digite um tema para guiar a IA!", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .testTag("generate_post_btn")
+                    ) {
+                        Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Escrever com IA", fontWeight = FontWeight.Bold)
                     }
+                }
+            }
+        }
 
-                    item {
+        // Display results of generated post
+        item {
+            AnimatedContent(targetState = postGenerationState, label = "post_gen_state_anim") { state ->
+                when (state) {
+                    is UiState.Loading -> {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(400.dp)
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            HistoryLogsSection(
-                                records = records,
-                                activeFilter = filter,
-                                onFilterChanged = { viewModel.setFilter(it) },
-                                onDelete = { viewModel.deleteRecord(it) }
-                            )
+                            CircularProgressIndicator(color = PrimaryPurple)
                         }
                     }
-                    
-                    // Extra spacer for floating actions
-                    item {
-                        Spacer(modifier = Modifier.height(72.dp))
-                    }
-                }
-            }
-        }
-    }
-
-    // Modal: User Metrics settings edit
-    if (showProfileDialog) {
-        ProfileEditDialog(
-            currentProfile = profile,
-            onDismiss = { showProfileDialog = false },
-            onSave = { w, h, s, d, m ->
-                viewModel.updateProfile(w, h, s, d, m)
-                showProfileDialog = false
-            }
-        )
-    }
-
-    // Modal: Manual Track vital inputs
-    if (showManualAddDialog) {
-        ManualLoggingDialog(
-            onDismiss = { showManualAddDialog = false },
-            onSave = { bpm, spo2, cat, note ->
-                viewModel.logManualEntry(bpm, spo2, cat, note)
-                showManualAddDialog = false
-            }
-        )
-    }
-}
-
-// Interactive photoplethysmogram Scanner Circle + Wave Visualizer
-@Composable
-fun ScannerSection(
-    scanStage: ScanStage,
-    scanProgress: Float,
-    heartRateSim: Int,
-    spo2Sim: Int,
-    scanMessage: String,
-    onScanStart: () -> Unit,
-    onScanCancel: () -> Unit
-) {
-    // Infinite transition for Pulsing glowing rings around scanner core
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse_rings")
-    val breatheScale by infiniteTransition.animateFloat(
-        initialValue = 0.95f,
-        targetValue = 1.15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = EaseInOutSine),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "core_glow_animation"
-    )
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("pulse_scanner_card"),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "CARDIAC PPG SCANNER",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "Hold finger on core button to measure",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Main Interactive Scan Ring Indicator
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(170.dp)
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onPress = {
-                                try {
-                                    onScanStart()
-                                    // Sustain wait until finger lift releases gesture
-                                    awaitRelease()
-                                    onScanCancel()
-                                } catch (e: Exception) {
-                                    onScanCancel()
+                    is UiState.Success -> {
+                        val post = state.data
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF13172E)),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(1.dp, PrimaryPurple, RoundedCornerShape(12.dp))
+                        ) {
+                            Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Rascunho Inteligente", fontWeight = FontWeight.Bold, color = PrimaryCyan, fontSize = 12.sp)
+                                    Box(
+                                        modifier = Modifier
+                                            .background(PrimaryPurple, RoundedCornerShape(4.dp))
+                                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(post.category, fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                                Text(post.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = TextPrimary)
+                                Text(post.content, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
+                                
+                                Row(
+                                    horizontalArrangement = Arrangement.End,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Button(
+                                        onClick = {
+                                            viewModel.toggleSavePost(post)
+                                            Toast.makeText(context, "Postagem guardada!", Toast.LENGTH_SHORT).show()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(imageVector = Icons.Default.Bookmark, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("Salvar Post")
+                                    }
                                 }
                             }
-                        )
-                    }
-                    .testTag("scan_fingerprint_button")
-            ) {
-                // Radiant animated ring backgrounds
-                Box(
-                    modifier = Modifier
-                        .size(150.dp)
-                        .graphicsLayer {
-                            scaleX = if (scanStage == ScanStage.MEASURING) breatheScale * 1.05f else 1.0f
-                            scaleY = if (scanStage == ScanStage.MEASURING) breatheScale * 1.05f else 1.0f
-                        }
-                        .background(
-                            Brush.radialGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                                    Color.Transparent
-                                )
-                            ),
-                            shape = CircleShape
-                        )
-                )
-
-                // Scan Progress Outer Circular Slider Indicator
-                val progressAnimated by animateFloatAsState(
-                    targetValue = scanProgress,
-                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                    label = "scan_progress_indicator"
-                )
-                Canvas(modifier = Modifier.size(150.dp)) {
-                    drawArc(
-                        color = Color.DarkGray.copy(alpha = 0.2f),
-                        startAngle = 0f,
-                        sweepAngle = 360f,
-                        useCenter = false,
-                        style = Stroke(width = 8.dp.toPx())
-                    )
-                    drawArc(
-                        color = if (scanStage == ScanStage.MEASURING) Color(0xFFE57373) else Color(0xFF4DB6AC),
-                        startAngle = -90f,
-                        sweepAngle = progressAnimated * 360f,
-                        useCenter = false,
-                        style = Stroke(width = 8.dp.toPx())
-                    )
-                }
-
-                // Middle scanning core button circle
-                val coreBg = when (scanStage) {
-                    ScanStage.PREPARING -> Color(0xFFFFA726)
-                    ScanStage.MEASURING -> Color(0xFFEF5350)
-                    ScanStage.SUCCESS -> Color(0xFF66BB6A)
-                    else -> MaterialTheme.colorScheme.primaryContainer
-                }
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(116.dp)
-                        .shadow(elevation = 6.dp, shape = CircleShape)
-                        .background(coreBg, shape = CircleShape)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = if (scanStage == ScanStage.SUCCESS) Icons.Default.Check else Icons.Default.Fingerprint,
-                            contentDescription = "Scan target",
-                            tint = if (scanStage == ScanStage.IDLE) MaterialTheme.colorScheme.onPrimaryContainer else Color.White,
-                            modifier = Modifier.size(38.dp)
-                        )
-                        if (scanStage == ScanStage.MEASURING) {
-                            Text(
-                                text = "$heartRateSim",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = Color.White
-                            )
-                            Text(
-                                text = "BPM",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                        } else {
-                            Text(
-                                text = if (scanStage == ScanStage.SUCCESS) "Done" else "Hold Me",
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                color = if (scanStage == ScanStage.IDLE) MaterialTheme.colorScheme.onPrimaryContainer else Color.White
-                            )
                         }
                     }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Pulse wave line simulator
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp)
-                    .background(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                        RoundedCornerShape(12.dp)
-                    )
-            ) {
-                if (scanStage == ScanStage.MEASURING) {
-                    LivePpgWaveCanvas(heartRate = heartRateSim)
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.TrendingUp,
-                            contentDescription = "Rhythm",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Finger sensor holding wave idle",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
+                    is UiState.Error -> {
+                        Text("Erro: ${state.message}", color = Color.Red, fontSize = 13.sp, textAlign = TextAlign.Center)
                     }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Guidance message and state feedback
-            Text(
-                text = scanMessage,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                color = when (scanStage) {
-                    ScanStage.PREPARING -> Color(0xFFE65100)
-                    ScanStage.MEASURING -> MaterialTheme.colorScheme.primary
-                    ScanStage.SUCCESS -> Color(0xFF2E7D32)
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                modifier = Modifier.testTag("scan_message_label")
-            )
-
-            if (scanStage == ScanStage.MEASURING) {
-                Spacer(modifier = Modifier.height(4.dp))
-                LinearProgressIndicator(
-                    progress = scanProgress,
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .height(3.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                )
-            }
-        }
-    }
-}
-
-// Canvas which draws an animating PPG Blood Pulse Wave
-@Composable
-fun LivePpgWaveCanvas(heartRate: Int) {
-    val transition = rememberInfiniteTransition(label = "ppg_wave")
-    val phase by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2f * Math.PI.toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "phase_offset"
-    )
-
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val width = size.width
-        val height = size.height
-        val wavePath = Path()
-
-        val points = 50
-        val segmentWidth = width / points
-        
-        // Use a combined formulation of sine/cosine values to replicate a cardiac systolic peak and dicrotic notch
-        for (i in 0..points) {
-            val x = i * segmentWidth
-            val normalizedX = (i.toFloat() / points) * 4f * Math.PI.toFloat()
-            
-            // Equation generating standard PPG cardiovascular twin bump shape
-            val waveYOne = sin(normalizedX - phase)
-            val waveYTwo = 0.4f * sin(2f * (normalizedX - phase) + 1.2f)
-            val combinedSinVal = waveYOne + waveYTwo
-            
-            // Center wave vertically on canvas
-            val y = (height / 2) + combinedSinVal * (height * 0.3f)
-            
-            if (i == 0) {
-                wavePath.moveTo(x, y)
-            } else {
-                wavePath.lineTo(x, y)
-            }
-        }
-
-        drawPath(
-            path = wavePath,
-            color = Color(0xFFE57373),
-            style = Stroke(width = 3.dp.toPx())
-        )
-    }
-}
-
-// User Metrics and health profile dashboard overview
-@Composable
-fun ProfileMetricsSummaryView(
-    profile: HealthProfile,
-    avgHR: Int,
-    avgSpO2: Int,
-    onEdit: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "PERSONAL VITALS PROFILE",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                IconButton(onClick = onEdit, modifier = Modifier.size(24.dp)) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit Profile Metrics",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Body parameters Grid Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                val weightLabel = if (profile.isMetric) "${profile.weightKg} kg" else "${String.format("%.1f", profile.weightKg * 2.20462f)} lbs"
-                val heightLabel = if (profile.isMetric) "${profile.heightCm} cm" else "${String.format("%.1f", profile.heightCm * 0.393701f)} in"
-
-                MetricValueCard(
-                    title = "Weight",
-                    value = weightLabel,
-                    icon = Icons.Default.LineWeight,
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                MetricValueCard(
-                    title = "Height",
-                    value = heightLabel,
-                    icon = Icons.Default.Height,
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                MetricValueCard(
-                    title = "Blood Pressure",
-                    value = "${profile.systolicBp}/${profile.diastolicBp} mmHg",
-                    icon = Icons.Default.Speed,
-                    color = MaterialTheme.colorScheme.tertiaryContainer,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                val sys = profile.systolicBp
-                val condition = when {
-                    sys < 120 -> "Optimal"
-                    sys in 120..129 -> "Normal"
-                    sys in 130..139 -> "High Normal"
-                    else -> "Elevated"
-                }
-                MetricValueCard(
-                    title = "BP Condition",
-                    value = condition,
-                    icon = Icons.Default.Assignment,
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // Average statistical aggregates
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "AVERAGE BPM", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(
-                        text = if (avgHR > 0) "$avgHR" else "--",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "AVERAGE SPO₂", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(
-                        text = if (avgSpO2 > 0) "$avgSpO2%" else "--",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
-                        color = MaterialTheme.colorScheme.secondary
-                    )
+                    else -> {}
                 }
             }
         }
-    }
-}
 
-// Single metric styling block
-@Composable
-fun MetricValueCard(
-    title: String,
-    value: String,
-    icon: ImageVector,
-    color: Color,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .background(color.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
-            .padding(12.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text(text = title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(text = value, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
-            }
+        item {
+            Text("Suas Postagens Criadas", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 16.sp)
         }
-    }
-}
 
-// Cardiovascular history list panel
-@Composable
-fun HistoryLogsSection(
-    records: List<PulseRecord>,
-    activeFilter: String,
-    onFilterChanged: (String) -> Unit,
-    onDelete: (String) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxSize()
-            .testTag("history_card"),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = "HEART LOG HISTORY",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Filtering Row pills
-            val options = listOf("All", "Resting", "Active", "Normal")
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                options.forEach { opt ->
-                    FilterChip(
-                        selected = activeFilter == opt,
-                        onClick = { onFilterChanged(opt) },
-                        label = { Text(text = opt) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.primary
-                        )
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Filter calculation list
-            val filteredRecords = if (activeFilter == "All") records else records.filter { it.category.equals(activeFilter, ignoreCase = true) }
-
-            if (filteredRecords.isEmpty()) {
-                Box(
+        // Saved drafts list
+        if (savedPosts.isNotEmpty()) {
+            items(savedPosts) { pst ->
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = CardBg),
+                    shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
+                        .border(1.dp, if (pst.isSaved) PrimaryCyan else CardBorder, RoundedCornerShape(12.dp))
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.FavoriteBorder,
-                            contentDescription = "Empty list",
-                            tint = Color.Gray,
-                            modifier = Modifier.size(44.dp)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "No recorded readings match filter",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
-                        )
-                    }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(filteredRecords, key = { it.id }) { rec ->
-                        PulseRecordRow(record = rec, onDelete = { onDelete(rec.id) })
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Box(
+                                    modifier = Modifier
+                                        .background(Color(0xFF263238), RoundedCornerShape(4.dp))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(pst.category, color = PrimaryCyan, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            IconButton(onClick = { viewModel.deletePost(pst.id) }) {
+                                Icon(imageVector = Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red)
+                            }
+                        }
+
+                        Text(pst.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextPrimary)
+                        Text(pst.content, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Button(
+                                onClick = {
+                                    Toast.makeText(context, "Texto copiado para postagem!", Toast.LENGTH_SHORT).show()
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E354F)),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Copiar Texto")
+                            }
+                        }
                     }
                 }
             }
+        } else {
+            item {
+                Text(
+                    "Você não tem nenhuma postagem salva ainda. Digite um tema acima para gerar um!",
+                    color = TextMuted,
+                    fontSize = 13.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
+                )
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
-}
-
-// Single log list row formatting
-@Composable
-fun PulseRecordRow(
-    record: PulseRecord,
-    onDelete: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // Heart Circle color based on rate severity
-            val circleColor = when {
-                record.heartRateBpm > 100 -> Color(0xFFEF5350) // High active (red)
-                record.heartRateBpm < 60 -> Color(0xFF42A5F5)  // Slow resting (blue)
-                else -> Color(0xFF66BB6A)                      // Optimal normal (green)
-            }
-            Box(
-                modifier = Modifier
-                    .size(46.dp)
-                    .background(circleColor.copy(alpha = 0.2f), shape = CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = null,
-                    tint = circleColor,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column {
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = "${record.heartRateBpm}",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold)
-                    )
-                    Text(
-                        text = " BPM",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "• SpO₂ ${record.spo2Percentage}%",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "${record.category}  |  ${record.note}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
-                Text(
-                    text = record.dateString,
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                    color = Color.Gray
-                )
-            }
-        }
-
-        IconButton(onClick = onDelete) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Delete log entry",
-                tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(18.dp)
-            )
-        }
-    }
-}
-
-// User Profile metrics dynamic dialog edit form
-@Composable
-fun ProfileEditDialog(
-    currentProfile: HealthProfile,
-    onDismiss: () -> Unit,
-    onSave: (Float, Float, Int, Int, Boolean) -> Unit
-) {
-    var isMetric by remember { mutableStateOf(currentProfile.isMetric) }
-    var weightInput by remember { mutableStateOf(currentProfile.weightKg.toString()) }
-    var heightInput by remember { mutableStateOf(currentProfile.heightCm.toString()) }
-    var systolicInput by remember { mutableStateOf(currentProfile.systolicBp.toString()) }
-    var diastolicInput by remember { mutableStateOf(currentProfile.diastolicBp.toString()) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            Button(
-                onClick = {
-                    val w = weightInput.toFloatOrNull() ?: currentProfile.weightKg
-                    val h = heightInput.toFloatOrNull() ?: currentProfile.heightCm
-                    val s = systolicInput.toIntOrNull() ?: currentProfile.systolicBp
-                    val d = diastolicInput.toIntOrNull() ?: currentProfile.diastolicBp
-                    onSave(w, h, s, d, isMetric)
-                },
-                modifier = Modifier.testTag("save_profile_button")
-            ) {
-                Text("Save Changes")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
-        title = {
-            Text(text = "Edit Vitals Profile", style = MaterialTheme.typography.titleMedium)
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Metric Imperial selection
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Measurement System", style = MaterialTheme.typography.bodyMedium)
-                    Row {
-                        FilterChip(
-                            selected = isMetric,
-                            onClick = { isMetric = true },
-                            label = { Text("Metric (kg/cm)") }
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        FilterChip(
-                            selected = !isMetric,
-                            onClick = { isMetric = false },
-                            label = { Text("Imperial (lb/in)") }
-                        )
-                    }
-                }
-
-                OutlinedTextField(
-                    value = weightInput,
-                    onValueChange = { weightInput = it },
-                    label = { Text(if (isMetric) "Weight (kg)" else "Weight (lbs)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                OutlinedTextField(
-                    value = heightInput,
-                    onValueChange = { heightInput = it },
-                    label = { Text(if (isMetric) "Height (cm)" else "Height (inches)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    OutlinedTextField(
-                        value = systolicInput,
-                        onValueChange = { systolicInput = it },
-                        label = { Text("Systolic BP") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 6.dp)
-                    )
-
-                    OutlinedTextField(
-                        value = diastolicInput,
-                        onValueChange = { diastolicInput = it },
-                        label = { Text("Diastolic BP") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 6.dp)
-                    )
-                }
-            }
-        }
-    )
-}
-
-// Manual health vitals manual entry form modal
-@Composable
-fun ManualLoggingDialog(
-    onDismiss: () -> Unit,
-    onSave: (Int, Int, String, String) -> Unit
-) {
-    var bpmInput by remember { mutableStateOf("") }
-    var spo2Input by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Normal") }
-    var noteInput by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            Button(
-                onClick = {
-                    val bpm = bpmInput.toIntOrNull() ?: 70
-                    val spo2 = spo2Input.toIntOrNull() ?: 98
-                    onSave(bpm, spo2, selectedCategory, noteInput)
-                },
-                modifier = Modifier.testTag("submit_manual_log")
-            ) {
-                Text("Log Entry")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
-        title = {
-            Text(text = "Log Vital Reading", style = MaterialTheme.typography.titleMedium)
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = bpmInput,
-                    onValueChange = { bpmInput = it },
-                    label = { Text("Heart Rate (BPM)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    placeholder = { Text("e.g. 72") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                OutlinedTextField(
-                    value = spo2Input,
-                    onValueChange = { spo2Input = it },
-                    label = { Text("Oxygen Saturation (SpO₂ %)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    placeholder = { Text("e.g. 98") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Text("Activity Context", style = MaterialTheme.typography.bodyMedium)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    val categories = listOf("Resting", "Active", "Normal")
-                    categories.forEach { cat ->
-                        FilterChip(
-                            selected = selectedCategory == cat,
-                            onClick = { selectedCategory = cat },
-                            label = { Text(text = cat) }
-                        )
-                    }
-                }
-
-                OutlinedTextField(
-                    value = noteInput,
-                    onValueChange = { noteInput = it },
-                    label = { Text("Session Notes") },
-                    singleLine = true,
-                    placeholder = { Text("e.g. Normal office reading") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        modifier = Modifier.testTag("manual_log_entry_dialog")
-    )
 }

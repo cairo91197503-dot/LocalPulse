@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "PulsePersonal"
+rootProject.name = "LocalPulse"
 include(":app")

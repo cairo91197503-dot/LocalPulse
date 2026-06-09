@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<full-backup-content>
-    <!-- Excluir SharedPreferences sensíveis do backup -->
-    <exclude domain="sharedpref" path="pulse_prefs.xml"/>
-
-    <!-- Excluir banco de dados Room se existir no futuro -->
-    <exclude domain="database" path="."/>
-</full-backup-content>

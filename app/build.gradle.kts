@@ -1,47 +1,31 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.google.services)
+    alias(libs.plugins.ksp)
+//    alias(libs.plugins.secrets)
 }
 
 android {
-    namespace = "com.aistudio.localpulse"
-    compileSdk = 35
+    namespace = "com.example"
+    compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.aistudio.localpulse.hswtxb"
+        applicationId = "com.aistudio.localpulse.kxmpzq"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 8
-        versionName = "0.8"
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
-
-        // Read GEMINI_API_KEY from .env file or system environment variables
-        val envFile = project.rootProject.file(".env")
-        var geminiApiKey = ""
-        if (envFile.exists()) {
-            envFile.readLines().forEach { line ->
-                if (line.trim().startsWith("GEMINI_API_KEY=")) {
-                    geminiApiKey = line.substringAfter("GEMINI_API_KEY=").trim().removeSurrounding("\"").removeSurrounding("'")
-                }
-            }
-        }
-        if (geminiApiKey.isEmpty()) {
-            geminiApiKey = System.getenv("GEMINI_API_KEY") ?: "PLACEHOLDER"
-        }
-        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -49,12 +33,18 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.8"
     }
     packaging {
         resources {
@@ -63,51 +53,44 @@ android {
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
-    }
-}
-
 dependencies {
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.activity:activity-compose:1.8.2")
-    
-    // Compose
-    implementation(platform("androidx.compose:compose-bom:2024.02.02"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.activity.compose)
 
-    // Navigation and Serialization
-    implementation("androidx.navigation:navigation-compose:2.7.7")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
 
-    // Firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.analytics)
+    implementation(libs.androidx.navigation.compose)
 
-    // Room
+    // Room Database
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    annotationProcessor(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 
-    // Coil
-    implementation(libs.coil.compose)
-
-    // Networking
-    implementation(libs.okhttp)
-    implementation(libs.logging.interceptor)
+    // Retrofit & OkHttp
     implementation(libs.retrofit)
-    implementation(libs.converter.moshi)
+    implementation(libs.retrofit.converter.serialization)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
 
-    // Lifecycle
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    // Kotlinx-serialization
+    implementation(libs.kotlinx.serialization.json)
 
-    // Testing
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }
+
+//secrets {
+//    propertiesFileName = ".env"
+//    defaultPropertiesFileName = ".env.example"
+//}

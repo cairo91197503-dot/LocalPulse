@@ -1,6 +1,6 @@
 {
-  "name": "PulsePersonal",
-  "description": "Premium personal metrics and pulse tracking app built with Jetpack Compose.",
+  "name": "LocalPulse",
+  "description": "IA diagnósticos e otimização para o seu perfil do Google Meu Negócio",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

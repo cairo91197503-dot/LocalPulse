@@ -1,164 +1,89 @@
 package com.example.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.ListAlt
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
+import androidx.compose.animation.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.screens.*
 import com.example.ui.viewmodel.BusinessViewModel
 import com.example.ui.viewmodel.AcademyViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.material.icons.filled.School
+import com.example.ui.theme.LocalPulseTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainApp(
-    viewModel: BusinessViewModel
+    userEmail: String = "cairo91197503@gmail.com"
 ) {
-    val navController = rememberNavController()
-    val isTutorialVisible by viewModel.isTutorialVisible.collectAsState()
-    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+    val businessViewModel: BusinessViewModel = viewModel()
+    val academyViewModel: AcademyViewModel = viewModel()
 
-    var activeTab by remember { mutableStateOf("home") }
+    var isLoggedIn by remember { mutableStateOf(false) }
+    var isProPlan by remember { mutableStateOf(true) }
+    var currentScreen by remember { mutableStateOf("onboarding") } // "onboarding", "home", "dashboard", "academy", "settings"
 
-    // Floating onboarding Tutorial dialog check
-    if (isTutorialVisible) {
-        AppTutorialDialog(
-            onDismiss = { viewModel.dismissTutorial() }
-        )
-    }
+    val profiles by businessViewModel.profiles.collectAsState()
+    val selectedProfile by businessViewModel.selectedProfile.collectAsState()
 
-    if (!isLoggedIn) {
-        OnboardingScreen(viewModel = viewModel)
-    } else {
-        Scaffold(
-            bottomBar = {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier.testTag("global_bottom_navigation_bar")
-                ) {
-                    NavigationBarItem(
-                        selected = activeTab == "home",
-                        onClick = {
-                            activeTab = "home"
-                            navController.navigate("home") {
-                                popUpTo("home") { inclusive = false }
-                            }
-                        },
-                        icon = { Icon(Icons.Default.Home, contentDescription = "Painel") },
-                        label = { Text("Painel") },
-                        modifier = Modifier.testTag("nav_tab_home")
-                    )
-                    NavigationBarItem(
-                        selected = activeTab == "posts",
-                        onClick = {
-                            activeTab = "posts"
-                            navController.navigate("posts") {
-                                popUpTo("home") { inclusive = false }
-                            }
-                        },
-                        icon = { Icon(Icons.Default.ListAlt, contentDescription = "Cronograma") },
-                        label = { Text("Posts") },
-                        modifier = Modifier.testTag("nav_tab_posts")
-                    )
-                    NavigationBarItem(
-                        selected = activeTab == "academy",
-                        onClick = {
-                            activeTab = "academy"
-                            navController.navigate("academy") {
-                                popUpTo("home") { inclusive = false }
-                            }
-                        },
-                        icon = { Icon(Icons.Default.School, contentDescription = "Academy") },
-                        label = { Text("Academy") },
-                        modifier = Modifier.testTag("nav_tab_academy")
-                    )
-                    NavigationBarItem(
-                        selected = activeTab == "settings",
-                        onClick = {
-                            activeTab = "settings"
-                            navController.navigate("settings") {
-                                popUpTo("home") { inclusive = false }
-                            }
-                        },
-                        icon = { Icon(Icons.Default.Settings, contentDescription = "Configurações") },
-                        label = { Text("Ajustes") },
-                        modifier = Modifier.testTag("nav_tab_settings")
+    LocalPulseTheme {
+        Crossfade(targetState = currentScreen, label = "screen_root_transitions") { screen ->
+            when (screen) {
+                "onboarding" -> {
+                    OnboardingScreen(
+                        onLoginSuccess = { isProSelected ->
+                            isProPlan = isProSelected
+                            isLoggedIn = true
+                            currentScreen = "home"
+                        }
                     )
                 }
-            },
-            modifier = Modifier.testTag("main_scaffold")
-        ) { innerPadding ->
-            NavHost(
-                navController = navController,
-                startDestination = "home",
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                composable("home") {
+                "home" -> {
                     HomeScreen(
-                        viewModel = viewModel,
-                        onNavigateToPosts = {
-                            activeTab = "posts"
-                            navController.navigate("posts")
+                        profiles = profiles,
+                        onSelectProfile = { id ->
+                            businessViewModel.selectProfile(id)
+                            currentScreen = "dashboard"
+                        },
+                        onAddProfile = { name, category, addr, phone, web, hrs, dsc ->
+                            businessViewModel.addCustomProfile(name, category, addr, phone, web, hrs, dsc)
+                            currentScreen = "dashboard"
+                        },
+                        onNavigateToAcademy = {
+                            currentScreen = "academy"
                         },
                         onNavigateToSettings = {
-                            activeTab = "settings"
-                            navController.navigate("settings")
+                            currentScreen = "settings"
                         }
                     )
                 }
-                composable("posts") {
-                    PostsScreen(
-                        viewModel = viewModel,
-                        onNavigateBack = {
-                            activeTab = "home"
-                            navController.navigate("home")
-                        }
-                    )
-                }
-                composable("academy") {
-                    val academyViewModel: AcademyViewModel = viewModel()
-                    AcademyScreen(viewModel = academyViewModel)
-                }
-                composable("settings") {
-                    var showPrivacyPolicy by remember { mutableStateOf(false) }
-
-                    if (showPrivacyPolicy) {
-                        AlertDialog(
-                            onDismissRequest = { showPrivacyPolicy = false },
-                            confirmButton = {
-                                Button(
-                                    onClick = { showPrivacyPolicy = false },
-                                    modifier = Modifier.testTag("privacy_policy_confirm_button")
-                                ) {
-                                    Text("Entendido")
-                                }
-                            },
-                            title = { Text("Política de Privacidade") },
-                            text = {
-                                Text(
-                                    "O aplicativo PulsePersonal protege rigorosamente todas as credenciais de segurança e APIs do usuário. Nenhum dado de conexão de redes sociais (Facebook, Instagram, YouTube e TikTok) é coletado ou transmitido a servidores de terceiros. A sua privacidade é nossa maior prioridade."
-                                )
-                            },
-                            modifier = Modifier.testTag("privacy_policy_dialog")
+                "dashboard" -> {
+                    selectedProfile?.let { profile ->
+                        DashboardScreen(
+                            viewModel = businessViewModel,
+                            profile = profile,
+                            onBack = {
+                                businessViewModel.selectProfile(null)
+                                currentScreen = "home"
+                            }
                         )
+                    } ?: run {
+                        currentScreen = "home"
                     }
-
+                }
+                "academy" -> {
+                    AcademyScreen(
+                        viewModel = academyViewModel,
+                        onBack = {
+                            currentScreen = "home"
+                        }
+                    )
+                }
+                "settings" -> {
                     SettingsScreen(
-                        viewModel = viewModel,
-                        onShowPrivacyPolicy = { showPrivacyPolicy = true }
+                        userEmail = userEmail,
+                        isPro = isProPlan,
+                        onToggleProMode = { isProPlan = it },
+                        onBack = {
+                            currentScreen = "home"
+                        }
                     )
                 }
             }

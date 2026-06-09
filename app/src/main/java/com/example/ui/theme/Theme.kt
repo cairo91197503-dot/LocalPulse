@@ -1,65 +1,46 @@
 package com.example.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// Custom Crimson & Teal palette matching heart health indicators
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFE57373),     // Heart Crimson
-    secondary = Color(0xFF4DB6AC),   // Pulse Teal
-    tertiary = Color(0xFFFFB74D),    // Amber Warning
-    background = Color(0xFF121212),  // Deep Slate
-    surface = Color(0xFF1E1E1E),     // Dark Card
-    onPrimary = Color(0xFF4A0E17),
-    onSecondary = Color(0xFF003732),
-    onBackground = Color(0xFFE3E3E3),
-    onSurface = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFF8C1D31),
-    secondaryContainer = Color(0xFF005B5C)
+    primary = PrimaryPurple,
+    secondary = PrimaryCyan,
+    background = DarkBg,
+    surface = CardBg,
+    onPrimary = TextPrimary,
+    onSecondary = DarkBg,
+    onBackground = TextPrimary,
+    onSurface = TextPrimary,
+    outline = CardBorder
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFFD32F2F),     // Strong Crimson
-    secondary = Color(0xFF00897B),   // Darker Teal
-    tertiary = Color(0xFFEF6C00),    // Alert Orange
-    background = Color(0xFFF9F9F9),  // Light Clean Background
-    surface = Color(0xFFFFFFFF),     // White Card
-    onPrimary = Color(0xFFFFFFFF),
-    onSecondary = Color(0xFFFFFFFF),
-    onBackground = Color(0xFF212121),
-    onSurface = Color(0xFF212121),
-    primaryContainer = Color(0xFFFFDAD9),
-    secondaryContainer = Color(0xFFCCE8E6)
+    primary = PrimaryPurpleLight,
+    secondary = PrimaryCyanLight,
+    background = LightBg,
+    surface = LightCardBg,
+    onPrimary = TextPrimary,
+    onSecondary = TextPrimaryLight,
+    onBackground = TextPrimaryLight,
+    onSurface = TextPrimaryLight,
+    outline = TextSecondaryLight
 )
 
 @Composable
-fun AppTheme(
+fun LocalPulseTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -71,6 +52,7 @@ fun AppTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        typography = Typography,
         content = content
     )
 }
