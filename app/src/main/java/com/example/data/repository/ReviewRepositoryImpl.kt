@@ -64,4 +64,46 @@ class ReviewRepositoryImpl @Inject constructor(
 
         awaitClose { listenerRegistration.remove() }
     }
+
+    override fun getNewLowRatingReviews(): Flow<Review> = callbackFlow {
+        val startTime = java.util.Date()
+        val listenerRegistration = reviewsCollection
+            .whereLessThanOrEqualTo("rating", 2f)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                snapshot?.documentChanges?.forEach { change ->
+                    if (change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED) {
+                        val review = change.document.toObject(Review::class.java)
+                        if (review.date.after(startTime)) {
+                            trySend(review)
+                        }
+                    }
+                }
+            }
+
+        awaitClose { listenerRegistration.remove() }
+    }
+
+    override fun getReviewsFrom(date: java.util.Date): Flow<List<Review>> = callbackFlow {
+        val listenerRegistration = reviewsCollection
+            .whereGreaterThanOrEqualTo("date", date)
+            .orderBy("date", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val reviews = snapshot.toObjects(Review::class.java)
+                    trySend(reviews)
+                }
+            }
+
+        awaitClose { listenerRegistration.remove() }
+    }
 }
