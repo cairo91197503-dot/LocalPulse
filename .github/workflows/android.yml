@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Download Gradle Wrapper JAR
+      run: |
+        mkdir -p gradle/wrapper
+        curl -Lo gradle/wrapper/gradle-wrapper.jar \
+        https://github.com/gradle/gradle/raw/v8.7.0/gradle/wrapper/gradle-wrapper.jar
+
     - uses: actions/checkout@v4
 
     - name: set up JDK 17
