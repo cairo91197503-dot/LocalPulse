@@ -81,7 +81,10 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                     }
                 )
             }
-            composable(Screen.ReviewDetail.route) { navBackStackEntry ->
+            composable(
+                route = Screen.ReviewDetail.route,
+                deepLinks = listOf(androidx.navigation.navDeepLink { uriPattern = "app://review_detail/{reviewId}" })
+            ) { navBackStackEntry ->
                 val reviewId = navBackStackEntry.arguments?.getString("reviewId") ?: return@composable
                 com.example.ui.reviews.detail.ReviewDetailScreen(
                     reviewId = reviewId,

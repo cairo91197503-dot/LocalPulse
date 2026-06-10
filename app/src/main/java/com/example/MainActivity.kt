@@ -91,13 +91,16 @@ class MainActivity : ComponentActivity() {
             return
         }
 
-        val intent = Intent(this, MainActivity::class.java).apply {
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            android.net.Uri.parse("app://review_detail/${review.id}"),
+            this,
+            MainActivity::class.java
+        ).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            // We could pass the review ID to open the detail screen
-            putExtra("reviewId", review.id)
         }
         val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            this, review.id.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val builder = NotificationCompat.Builder(this, "REVIEW_ALERTS")

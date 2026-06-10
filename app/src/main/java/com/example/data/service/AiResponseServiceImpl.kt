@@ -24,7 +24,7 @@ class AiResponseServiceImpl @Inject constructor(
             return@withContext Result.failure(Exception("API Key do Gemini não configurada."))
         }
 
-        val prompt = \"\"\"
+        val prompt = """
             Você é um assistente virtual para donos de pequenos negócios.
             Um cliente deixou a seguinte avaliação para o negócio:
             
@@ -34,7 +34,7 @@ class AiResponseServiceImpl @Inject constructor(
             
             Gere uma resposta profissional, educada e empática para esta avaliação.
             A resposta deve agradecer o feedback e, se a nota for baixa ou o sentimento negativo, oferecer suporte ou pedir desculpas pela má experiência, de maneira concisa.
-        \"\"\".trimIndent()
+        """.trimIndent()
 
         val request = GenerateContentRequest(
             contents = listOf(
