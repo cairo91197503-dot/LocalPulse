@@ -9,6 +9,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.localpulse.app.navigation.Routes
+import com.localpulse.app.presentation.home.HomeScreen
 import com.localpulse.app.ui.theme.LocalPulseTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
@@ -67,15 +73,34 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = androidx.compose.material3.MaterialTheme.colorScheme.background
                 ) {
+                    val navController = rememberNavController()
                     val uiState by loginViewModel.uiState.collectAsState()
 
-                    LoginScreen(
-                        uiState = uiState,
-                        onSignInClick = {
-                            val signInIntent = googleSignInClient.signInIntent
-                            signInLauncher.launch(signInIntent)
+                    LaunchedEffect(uiState) {
+                        if (uiState is LoginUiState.Success) {
+                            navController.navigate(Routes.HOME) {
+                                popUpTo(Routes.LOGIN) { inclusive = true }
+                            }
                         }
-                    )
+                    }
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = Routes.LOGIN
+                    ) {
+                        composable(Routes.LOGIN) {
+                            LoginScreen(
+                                uiState = uiState,
+                                onSignInClick = {
+                                    val signInIntent = googleSignInClient.signInIntent
+                                    signInLauncher.launch(signInIntent)
+                                }
+                            )
+                        }
+                        composable(Routes.HOME) {
+                            HomeScreen()
+                        }
+                    }
                 }
             }
         }
