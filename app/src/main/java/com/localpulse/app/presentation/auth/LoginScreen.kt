@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.localpulse.app.R
+import com.localpulse.app.ui.theme.LocalPulseTheme
 
 /**
  * Screen that handles user authentication via Google.
@@ -106,10 +107,15 @@ fun LoginScreen(
                             )
                         } else {
                             // Using a placeholder icon here since we might not have the Google icon drawable
-                            Icon(
-                                painter = painterResource(id = android.R.drawable.ic_dialog_email),
-                                contentDescription = "Google Icon",
-                                modifier = Modifier.size(24.dp)
+                            Text(
+                                text = "G",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .wrapContentSize()
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
@@ -138,7 +144,7 @@ fun LoginScreen(
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    MaterialTheme {
+    LocalPulseTheme {
         LoginScreen(
             uiState = LoginUiState.Idle,
             onSignInClick = {}
@@ -149,7 +155,7 @@ fun LoginScreenPreview() {
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenLoadingPreview() {
-    MaterialTheme {
+    LocalPulseTheme {
         LoginScreen(
             uiState = LoginUiState.Loading,
             onSignInClick = {}
