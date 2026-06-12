@@ -35,7 +35,10 @@ jobs:
     - name: Configure secrets
       run: |
         echo "WEB_CLIENT_ID=${{ secrets.WEB_CLIENT_ID }}" \
-        >> secrets.properties
+        > secrets.properties
+
+    - name: Verify secrets
+      run: cat secrets.properties
 
     - name: Build with Gradle
       run: |
