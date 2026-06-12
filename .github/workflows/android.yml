@@ -43,6 +43,10 @@ jobs:
           --no-daemon \
           --gradle-user-home ~/.gradle
 
+    - name: Signing Report
+      run: ./gradlew app:signingReport --no-daemon
+      continue-on-error: true
+
     - name: Get signing info
       run: |
         keytool -list -v \
