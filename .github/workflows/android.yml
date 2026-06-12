@@ -40,6 +40,18 @@ jobs:
     - name: Verify secrets
       run: cat secrets.properties
 
+    - name: Create debug keystore
+      run: |
+        keytool -genkeypair \
+          -alias androiddebugkey \
+          -keypass android \
+          -keystore debug.keystore \
+          -storepass android \
+          -dname "CN=Android Debug,O=Android,C=US" \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000
+
     - name: Build with Gradle
       run: |
         ./gradlew assembleDebug \
