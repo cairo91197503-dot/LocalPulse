@@ -10,10 +10,18 @@
       "client_info": {
         "mobilesdk_app_id": "1:763259258045:android:723167d0355c61dbab23d4",
         "android_client_info": {
-          "package_name": "com.localpulse.app"
+          "package_name": "com.aistudio.localpulse.hswtxb"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "763259258045-0999tboldd6c73n6uo4ioeucj49ra0l5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aistudio.localpulse.hswtxb",
+            "certificate_hash": "f33eca4aba0942052def9dc41bf08b84f9847b63"
+          }
+        },
         {
           "client_id": "763259258045-4e5rveedm64jpfp1vp932mvc58d547vr.apps.googleusercontent.com",
           "client_type": 3
