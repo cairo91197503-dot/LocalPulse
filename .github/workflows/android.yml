@@ -34,21 +34,14 @@ jobs:
 
     - name: Build with Gradle
       run: |
-        ./gradlew bundleRelease assembleRelease \
-          assembleDebug \
+        ./gradlew assembleDebug \
           --no-daemon \
           --gradle-user-home ~/.gradle
 
-    - name: Upload APK
+    - name: Upload APK Debug
       uses: actions/upload-artifact@v4
       with:
         name: LocalPulse-debug
-        path: app/build/outputs/apk/debug/*.apk
-        retention-days: 7
-
-    - name: Upload AAB
-      uses: actions/upload-artifact@v4
-      with:
-        name: LocalPulse-release
-        path: app/build/outputs/bundle/release/app-release.aab
-        retention-days: 7
+        path: |
+          app/build/outputs/apk/debug/app-debug.apk
+        if-no-files-found: error
