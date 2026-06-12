@@ -13,11 +13,20 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.aistudio.localpulse.hswtxb"
+        applicationId = "com.localpulse.app"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
+    }
+
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("../debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {
