@@ -10,12 +10,12 @@ plugins {
 
 android {
     namespace = "com.localpulse.app"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.aistudio.localpulse.hswtxb"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
     }
