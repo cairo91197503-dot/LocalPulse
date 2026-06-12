@@ -50,6 +50,43 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:763259258045:android:b53890d260f35007ab23d4",
+        "android_client_info": {
+          "package_name": "com.localpulse.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "763259258045-hesi9su7qb9tktfjlr108u1iurt37m6a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.localpulse.app",
+            "certificate_hash": "964b3fd02ee24ea33d8a021b0960f64f5f1c9ca7"
+          }
+        },
+        {
+          "client_id": "763259258045-4e5rveedm64jpfp1vp932mvc58d547vr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfATrTTHGI7NGIPijSHodU_nvu5Ri4dpo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "763259258045-4e5rveedm64jpfp1vp932mvc58d547vr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"
