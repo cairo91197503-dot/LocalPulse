@@ -43,6 +43,12 @@ jobs:
           --no-daemon \
           --gradle-user-home ~/.gradle
 
+    - name: Get SHA1 of debug APK
+      run: |
+        keytool -list -printcert \
+        -jarfile app/build/outputs/apk/debug/app-debug.apk \
+        | grep SHA1
+
     - name: Upload APK Debug
       uses: actions/upload-artifact@v4
       with:
