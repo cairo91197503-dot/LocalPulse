@@ -32,6 +32,11 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
+    - name: Configure secrets
+      run: |
+        echo "WEB_CLIENT_ID=${{ secrets.WEB_CLIENT_ID }}" \
+        >> secrets.properties
+
     - name: Build with Gradle
       run: |
         ./gradlew assembleDebug \
