@@ -38,22 +38,7 @@ class MainActivity : ComponentActivity() {
     private val signInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                val idToken = account?.idToken
-                if (idToken != null) {
-                    loginViewModel.onGoogleSignInResult(idToken)
-                } else {
-                    loginViewModel.onSignInError()
-                }
-            } catch (e: ApiException) {
-                loginViewModel.onSignInError()
-            }
-        } else {
-            loginViewModel.onSignInError()
-        }
+        loginViewModel.onGoogleSignInResult(result.data)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

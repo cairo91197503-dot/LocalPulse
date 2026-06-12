@@ -2,6 +2,8 @@ package com.localpulse.app.presentation.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
 import com.localpulse.app.data.auth.AuthRepository
 import com.localpulse.app.domain.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,14 +45,34 @@ class LoginViewModel @Inject constructor(
      *
      * @param idToken The Google ID token.
      */
-    fun onGoogleSignInResult(idToken: String) {
-        _uiState.value = LoginUiState.Loading
+    fun onGoogleSignInResult(data: android.content.Intent?) {
         viewModelScope.launch {
-            val result = authRepository.signInWithGoogle(idToken)
-            result.onSuccess { user ->
-                _uiState.value = LoginUiState.Success(user)
-            }.onFailure { error ->
-                _uiState.value = LoginUiState.Error(error.localizedMessage ?: "Unknown error occurred.")
+            try {
+                val account = GoogleSignIn
+                    .getSignedInAccountFromIntent(data)
+                    .getResult(ApiException::class.java)
+                
+                val idToken = account.idToken
+                if (idToken == null) {
+                    _uiState.value = LoginUiState.Error(
+                        "Token nulo - verifique WEB_CLIENT_ID"
+                    )
+                    return@launch
+                }
+                
+                authRepository.signInWithGoogle(idToken).onSuccess { user ->
+                    _uiState.value = LoginUiState.Success(user)
+                }.onFailure { error ->
+                    _uiState.value = LoginUiState.Error(error.message ?: "Erro desconhecido")
+                }
+            } catch (e: ApiException) {
+                _uiState.value = LoginUiState.Error(
+                    "Código de erro: ${e.statusCode} - ${e.message}"
+                )
+            } catch (e: Exception) {
+                _uiState.value = LoginUiState.Error(
+                    "Erro: ${e.javaClass.simpleName} - ${e.message}"
+                )
             }
         }
     }
