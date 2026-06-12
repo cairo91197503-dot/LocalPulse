@@ -23,6 +23,14 @@
           }
         },
         {
+          "client_id": "763259258045-hod2qtsf118hgudtuargaq2b8s2ra5mt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aistudio.localpulse.hswtxb",
+            "certificate_hash": "964b3fd02ee24ea33d8a021b0960f64f5f1c9ca7"
+          }
+        },
+        {
           "client_id": "763259258045-4e5rveedm64jpfp1vp932mvc58d547vr.apps.googleusercontent.com",
           "client_type": 3
         }
