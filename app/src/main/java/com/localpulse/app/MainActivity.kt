@@ -110,6 +110,19 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Routes.SETTINGS) {
                             val homeViewModel: HomeViewModel = hiltViewModel()
+                            val homeUiState by homeViewModel.uiState.collectAsState()
+
+                            LaunchedEffect(homeUiState) {
+                                if (homeUiState is HomeUiState.LoggedOut) {
+                                    googleSignInClient.signOut()
+                                        .addOnCompleteListener {
+                                        navController.navigate(Routes.LOGIN) {
+                                            popUpTo(0) { inclusive = true }
+                                        }
+                                    }
+                                }
+                            }
+
                             SettingsScreen(
                                 onNavigateBack = { navController.popBackStack() },
                                 onSignOut = { homeViewModel.signOut() }
