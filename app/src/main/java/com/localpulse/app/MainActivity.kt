@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.localpulse.app.navigation.Routes
 import com.localpulse.app.presentation.home.HomeScreen
+import com.localpulse.app.presentation.settings.SettingsScreen
 import com.localpulse.app.presentation.home.HomeUiState
 import com.localpulse.app.presentation.home.HomeViewModel
 import com.localpulse.app.ui.theme.LocalPulseTheme
@@ -101,7 +102,17 @@ class MainActivity : ComponentActivity() {
 
                             HomeScreen(
                                 viewModel = homeViewModel,
-                                onSignOutClick = { homeViewModel.signOut() }
+                                onSignOutClick = { homeViewModel.signOut() },
+                                onNavigateToSettings = {
+                                    navController.navigate(Routes.SETTINGS)
+                                }
+                            )
+                        }
+                        composable(Routes.SETTINGS) {
+                            val homeViewModel: HomeViewModel = hiltViewModel()
+                            SettingsScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onSignOut = { homeViewModel.signOut() }
                             )
                         }
                     }
