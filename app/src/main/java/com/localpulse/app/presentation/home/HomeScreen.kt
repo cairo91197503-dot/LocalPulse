@@ -17,6 +17,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.localpulse.app.domain.model.User
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.foundation.border
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,20 +36,26 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("LocalPulse", fontWeight = FontWeight.Bold) },
                 actions = {
-                    Box(
+                    val userPhotoUrl = (uiState as? HomeUiState.Content)?.userPhotoUrl
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(userPhotoUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Foto de perfil",
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .padding(end = 16.dp)
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Perfil do Usuário",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
+                            .border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = CircleShape
+                            ),
+                        placeholder = painterResource(id = android.R.drawable.ic_menu_myplaces),
+                        error = painterResource(id = android.R.drawable.ic_menu_myplaces)
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,

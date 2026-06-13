@@ -17,7 +17,7 @@ import javax.inject.Inject
  */
 sealed class HomeUiState {
     object Loading : HomeUiState()
-    data class Content(val user: User?, val reputationScore: Int = 0) : HomeUiState()
+    data class Content(val user: User?, val reputationScore: Int = 0, val userPhotoUrl: String? = null) : HomeUiState()
     data class Error(val message: String) : HomeUiState()
 }
 
@@ -40,7 +40,8 @@ class HomeViewModel @Inject constructor(
             delay(1000)
             try {
                 val user = authRepository.getCurrentUser()
-                _uiState.value = HomeUiState.Content(user = user, reputationScore = 0)
+                val photoUrl = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.photoUrl?.toString()
+                _uiState.value = HomeUiState.Content(user = user, reputationScore = 0, userPhotoUrl = photoUrl)
             } catch (e: Exception) {
                 _uiState.value = HomeUiState.Error("Falha ao carregar dados. Tente novamente.")
             }
