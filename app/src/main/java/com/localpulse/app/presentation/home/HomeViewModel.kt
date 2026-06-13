@@ -1,7 +1,11 @@
 package com.localpulse.app.presentation.home
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.auth.FirebaseAuth
 import com.localpulse.app.data.auth.AuthRepository
 import com.localpulse.app.domain.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,12 +23,14 @@ sealed class HomeUiState {
     object Loading : HomeUiState()
     data class Content(val user: User?, val reputationScore: Int = 0, val userPhotoUrl: String? = null) : HomeUiState()
     data class Error(val message: String) : HomeUiState()
+    object LoggedOut : HomeUiState()
 }
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    application: Application,
     private val authRepository: AuthRepository
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -40,11 +46,20 @@ class HomeViewModel @Inject constructor(
             delay(1000)
             try {
                 val user = authRepository.getCurrentUser()
-                val photoUrl = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.photoUrl?.toString()
+                val photoUrl = FirebaseAuth.getInstance().currentUser?.photoUrl?.toString()
                 _uiState.value = HomeUiState.Content(user = user, reputationScore = 0, userPhotoUrl = photoUrl)
             } catch (e: Exception) {
                 _uiState.value = HomeUiState.Error("Falha ao carregar dados. Tente novamente.")
             }
         }
+    }
+
+    fun signOut() {
+        FirebaseAuth.getInstance().signOut()
+        GoogleSignIn.getClient(
+            getApplication<Application>(),
+            GoogleSignInOptions.DEFAULT_SIGN_IN
+        ).signOut()
+        _uiState.value = HomeUiState.LoggedOut
     }
 }

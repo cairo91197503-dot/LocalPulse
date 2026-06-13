@@ -13,8 +13,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.localpulse.app.navigation.Routes
 import com.localpulse.app.presentation.home.HomeScreen
+import com.localpulse.app.presentation.home.HomeUiState
+import com.localpulse.app.presentation.home.HomeViewModel
 import com.localpulse.app.ui.theme.LocalPulseTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
@@ -83,7 +86,21 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(Routes.HOME) {
-                            HomeScreen()
+                            val homeViewModel: HomeViewModel = hiltViewModel()
+                            val homeUiState by homeViewModel.uiState.collectAsState()
+
+                            LaunchedEffect(homeUiState) {
+                                if (homeUiState is HomeUiState.LoggedOut) {
+                                    navController.navigate(Routes.LOGIN) {
+                                        popUpTo(Routes.HOME) { inclusive = true }
+                                    }
+                                }
+                            }
+
+                            HomeScreen(
+                                viewModel = homeViewModel,
+                                onSignOutClick = { homeViewModel.signOut() }
+                            )
                         }
                     }
                 }
