@@ -91,8 +91,10 @@ class MainActivity : ComponentActivity() {
 
                             LaunchedEffect(homeUiState) {
                                 if (homeUiState is HomeUiState.LoggedOut) {
-                                    navController.navigate(Routes.LOGIN) {
-                                        popUpTo(Routes.HOME) { inclusive = true }
+                                    googleSignInClient.signOut().addOnCompleteListener {
+                                        navController.navigate(Routes.LOGIN) {
+                                            popUpTo(0) { inclusive = true }
+                                        }
                                     }
                                 }
                             }
