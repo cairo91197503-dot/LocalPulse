@@ -9,8 +9,11 @@ package com.localpulse.app.domain.model
  * @property photoUrl URL for the user's profile picture, if available.
  */
 data class User(
-    val uid: String,
-    val name: String,
-    val email: String,
-    val photoUrl: String?
+    val uid: String = "",
+    val name: String = "",
+    val email: String = "",
+    val photoUrl: String? = null,
+    val plan: String = "free",
+    val createdAt: Long = System.currentTimeMillis(),
+    val lastLoginAt: Long = System.currentTimeMillis()
 )

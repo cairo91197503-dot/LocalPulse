@@ -12,7 +12,8 @@ import javax.inject.Inject
  * @property firebaseAuth The [FirebaseAuth] instance provided via Hilt.
  */
 class AuthRepositoryImpl @Inject constructor(
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val userRepository: com.localpulse.app.data.user.UserRepository
 ) : AuthRepository {
 
     override suspend fun signInWithGoogle(idToken: String): Result<User> {
@@ -26,8 +27,10 @@ class AuthRepositoryImpl @Inject constructor(
                     uid = firebaseUser.uid,
                     name = firebaseUser.displayName ?: "",
                     email = firebaseUser.email ?: "",
-                    photoUrl = firebaseUser.photoUrl?.toString()
+                    photoUrl = firebaseUser.photoUrl?.toString(),
+                    lastLoginAt = System.currentTimeMillis()
                 )
+                userRepository.saveUser(user)
                 Result.success(user)
             } else {
                 Result.failure(Exception("Failed to retrieve user after sign in."))

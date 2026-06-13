@@ -30,7 +30,10 @@ object AuthModule {
      */
     @Provides
     @Singleton
-    fun provideAuthRepository(firebaseAuth: FirebaseAuth): AuthRepository {
-        return AuthRepositoryImpl(firebaseAuth)
+    fun provideAuthRepository(
+        firebaseAuth: FirebaseAuth,
+        userRepository: com.localpulse.app.data.user.UserRepository
+    ): AuthRepository {
+        return AuthRepositoryImpl(firebaseAuth, userRepository)
     }
 }
