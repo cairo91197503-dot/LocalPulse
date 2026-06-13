@@ -107,6 +107,9 @@ fun HomeScreen(
                         }
                     }
                 }
+                is HomeUiState.LoggedOut -> {
+                    // Navegação tratada na MainActivity
+                }
             }
         }
     }
