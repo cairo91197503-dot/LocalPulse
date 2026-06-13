@@ -42,15 +42,16 @@ jobs:
 
     - name: Create debug keystore
       run: |
-        keytool -genkeypair \
-          -alias androiddebugkey \
-          -keypass android \
+        echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" \
+        | base64 -d > debug.keystore
+
+    - name: Show keystore SHA1
+      run: |
+        keytool -list -v \
           -keystore debug.keystore \
+          -alias androiddebugkey \
           -storepass android \
-          -dname "CN=Android Debug,O=Android,C=US" \
-          -keyalg RSA \
-          -keysize 2048 \
-          -validity 10000
+          -keypass android | grep SHA1
 
     - name: Build with Gradle
       run: |
