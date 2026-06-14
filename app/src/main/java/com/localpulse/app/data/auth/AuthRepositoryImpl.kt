@@ -23,7 +23,12 @@ class AuthRepositoryImpl @Inject constructor(
             val firebaseUser = authResult.user
             
             if (firebaseUser != null) {
-                val user = User(
+                val existingUser = userRepository.getUser(firebaseUser.uid).getOrNull()
+                val user = existingUser?.copy(
+                    lastLoginAt = System.currentTimeMillis(),
+                    name = firebaseUser.displayName ?: existingUser.name,
+                    photoUrl = firebaseUser.photoUrl?.toString() ?: existingUser.photoUrl
+                ) ?: User(
                     uid = firebaseUser.uid,
                     name = firebaseUser.displayName ?: "",
                     email = firebaseUser.email ?: "",

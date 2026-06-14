@@ -45,4 +45,32 @@ class UserRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun setHasBusinessProfile(uid: String, has: Boolean): Result<Unit> {
+        return try {
+            firestore.collection("users")
+                .document(uid)
+                .set(
+                    mapOf("hasBusinessProfile" to has),
+                    SetOptions.merge()
+                )
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun hasBusinessProfile(uid: String): Result<Boolean> {
+        return try {
+            val doc = firestore.collection("users")
+                .document(uid)
+                .get()
+                .await()
+            val hasProfile = doc.getBoolean("hasBusinessProfile") ?: false
+            Result.success(hasProfile)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

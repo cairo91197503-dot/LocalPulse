@@ -67,8 +67,14 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(uiState) {
                         if (uiState is LoginUiState.Success) {
-                            navController.navigate(Routes.HOME) {
-                                popUpTo(Routes.LOGIN) { inclusive = true }
+                            if ((uiState as LoginUiState.Success).user.hasBusinessProfile) {
+                                navController.navigate(Routes.HOME) {
+                                    popUpTo(Routes.LOGIN) { inclusive = true }
+                                }
+                            } else {
+                                navController.navigate(Routes.ONBOARDING_BUSINESS) {
+                                    popUpTo(Routes.LOGIN) { inclusive = true }
+                                }
                             }
                         }
                     }
@@ -83,6 +89,19 @@ class MainActivity : ComponentActivity() {
                                 onSignInClick = {
                                     val signInIntent = googleSignInClient.signInIntent
                                     signInLauncher.launch(signInIntent)
+                                }
+                            )
+                        }
+                        composable(Routes.ONBOARDING_BUSINESS) {
+                            com.localpulse.app.presentation.onboarding.OnboardingBusinessScreen(
+                                onHasBusiness = {
+                                    loginViewModel.markBusinessProfileCompleted()
+                                    navController.navigate(Routes.HOME) {
+                                        popUpTo(Routes.ONBOARDING_BUSINESS) { inclusive = true }
+                                    }
+                                },
+                                onNoBusiness = {
+                                    // Abrir browser tratado na tela
                                 }
                             )
                         }

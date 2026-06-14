@@ -15,5 +15,6 @@ data class User(
     val photoUrl: String? = null,
     val plan: String = "free",
     val createdAt: Long = System.currentTimeMillis(),
-    val lastLoginAt: Long = System.currentTimeMillis()
+    val lastLoginAt: Long = System.currentTimeMillis(),
+    val hasBusinessProfile: Boolean = false
 )

@@ -34,11 +34,24 @@ sealed class LoginUiState {
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: com.localpulse.app.data.user.UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+
+    fun markBusinessProfileCompleted() {
+        val currentState = _uiState.value
+        if (currentState is LoginUiState.Success) {
+            viewModelScope.launch {
+                userRepository.setHasBusinessProfile(currentState.user.uid, true)
+                _uiState.value = LoginUiState.Success(
+                    currentState.user.copy(hasBusinessProfile = true)
+                )
+            }
+        }
+    }
 
     /**
      * Called when a successful Google Sign-In result provides an ID token.
