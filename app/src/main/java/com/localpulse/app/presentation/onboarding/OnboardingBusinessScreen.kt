@@ -36,7 +36,8 @@ import com.localpulse.app.ui.theme.LocalPulseTheme
 @Composable
 fun OnboardingBusinessScreen(
     onHasBusiness: () -> Unit,
-    onNoBusiness: () -> Unit
+    onNoBusiness: () -> Unit,
+    onSkip: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -135,7 +136,7 @@ fun OnboardingBusinessScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Link para pular
-        TextButton(onClick = onHasBusiness) {
+        TextButton(onClick = onSkip) {
             Text(
                 text = "Pular por enquanto",
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -166,7 +167,8 @@ fun OnboardingBusinessScreenPreview() {
     LocalPulseTheme {
         OnboardingBusinessScreen(
             onHasBusiness = {},
-            onNoBusiness = {}
+            onNoBusiness = {},
+            onSkip = {}
         )
     }
 }

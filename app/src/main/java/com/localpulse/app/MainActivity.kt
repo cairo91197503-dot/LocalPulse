@@ -102,6 +102,11 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNoBusiness = {
                                     // Abrir browser tratado na tela
+                                },
+                                onSkip = {
+                                    navController.navigate(Routes.HOME) {
+                                        popUpTo(Routes.ONBOARDING_BUSINESS) { inclusive = true }
+                                    }
                                 }
                             )
                         }
