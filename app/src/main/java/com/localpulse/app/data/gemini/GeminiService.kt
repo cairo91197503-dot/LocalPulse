@@ -18,7 +18,7 @@ import javax.inject.Singleton
 class GeminiService @Inject constructor() {
 
     private val apiKey = BuildConfig.GEMINI_API_KEY
-    private val apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=$apiKey"
+    private val apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey"
 
     /**
      * Gera diagnóstico de reputação baseado nos dados do negócio.
