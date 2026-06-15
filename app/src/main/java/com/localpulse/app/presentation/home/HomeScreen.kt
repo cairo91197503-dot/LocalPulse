@@ -27,7 +27,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.foundation.layout.Row
@@ -38,7 +40,8 @@ import androidx.compose.foundation.layout.width
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onSignOutClick: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToDiagnosis: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -106,7 +109,8 @@ fun HomeScreen(
                         user = state.user,
                         reputationScore = state.reputationScore,
                         isRefreshing = isRefreshing,
-                        onRefresh = { viewModel.loadData() }
+                        onRefresh = { viewModel.loadData() },
+                        onNavigateToDiagnosis = onNavigateToDiagnosis
                     )
                 }
                 is HomeUiState.Error -> {
@@ -139,7 +143,8 @@ fun DashboardContent(
     user: User?, 
     reputationScore: Int,
     isRefreshing: Boolean,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onNavigateToDiagnosis: () -> Unit
 ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -219,6 +224,49 @@ fun DashboardContent(
                         text = "Analisando seu perfil...",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToDiagnosis() },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            "Diagnóstico com IA",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "Analise sua reputação online",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary
                     )
                 }
             }

@@ -129,6 +129,9 @@ class MainActivity : ComponentActivity() {
                                 onSignOutClick = { homeViewModel.signOut() },
                                 onNavigateToSettings = {
                                     navController.navigate(Routes.SETTINGS)
+                                },
+                                onNavigateToDiagnosis = {
+                                    navController.navigate(Routes.BUSINESS_FORM)
                                 }
                             )
                         }
@@ -150,6 +153,26 @@ class MainActivity : ComponentActivity() {
                             SettingsScreen(
                                 onNavigateBack = { navController.popBackStack() },
                                 onSignOut = { homeViewModel.signOut() }
+                            )
+                        }
+                        composable(Routes.BUSINESS_FORM) {
+                            com.localpulse.app.presentation.diagnosis.BusinessFormScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onDiagnosisReady = { json ->
+                                    navController.navigate("${Routes.DIAGNOSIS_RESULT}/${android.net.Uri.encode(json)}")
+                                }
+                            )
+                        }
+                        composable("${Routes.DIAGNOSIS_RESULT}/{json}") { backStackEntry ->
+                            val json = backStackEntry.arguments?.getString("json") ?: ""
+                            com.localpulse.app.presentation.diagnosis.DiagnosisResultScreen(
+                                diagnosisJson = android.net.Uri.decode(json),
+                                onNavigateBack = { navController.popBackStack() },
+                                onNewDiagnosis = {
+                                    navController.navigate(Routes.BUSINESS_FORM) {
+                                        popUpTo(Routes.DIAGNOSIS_RESULT) { inclusive = true }
+                                    }
+                                }
                             )
                         }
                     }
