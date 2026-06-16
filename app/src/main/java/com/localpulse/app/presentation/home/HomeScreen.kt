@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,7 +42,8 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onSignOutClick: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToDiagnosis: () -> Unit
+    onNavigateToDiagnosis: () -> Unit,
+    onNavigateToQrCode: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -110,7 +112,8 @@ fun HomeScreen(
                         reputationScore = state.reputationScore,
                         isRefreshing = isRefreshing,
                         onRefresh = { viewModel.loadData() },
-                        onNavigateToDiagnosis = onNavigateToDiagnosis
+                        onNavigateToDiagnosis = onNavigateToDiagnosis,
+                        onNavigateToQrCode = onNavigateToQrCode
                     )
                 }
                 is HomeUiState.Error -> {
@@ -144,7 +147,8 @@ fun DashboardContent(
     reputationScore: Int,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onNavigateToDiagnosis: () -> Unit
+    onNavigateToDiagnosis: () -> Unit,
+    onNavigateToQrCode: () -> Unit
 ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -267,6 +271,45 @@ fun DashboardContent(
                         Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+        }
+
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToQrCode() },
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.QrCode,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            "QR Code de Avaliações",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "Gere e compartilhe seu QR Code",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null
                     )
                 }
             }

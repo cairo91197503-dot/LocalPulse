@@ -82,5 +82,6 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation(libs.play.services.auth)
     implementation(libs.coil.compose)
+    implementation(libs.zxing.core)
     debugImplementation(libs.androidx.ui.tooling)
 }

@@ -132,6 +132,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToDiagnosis = {
                                     navController.navigate(Routes.BUSINESS_FORM)
+                                },
+                                onNavigateToQrCode = {
+                                    navController.navigate(Routes.QR_CODE)
                                 }
                             )
                         }
@@ -173,6 +176,11 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(Routes.DIAGNOSIS_RESULT) { inclusive = true }
                                     }
                                 }
+                            )
+                        }
+                        composable(Routes.QR_CODE) {
+                            com.localpulse.app.presentation.qrcode.QrCodeScreen(
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
                     }
