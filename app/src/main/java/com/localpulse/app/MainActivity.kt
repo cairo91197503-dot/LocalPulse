@@ -94,12 +94,13 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Routes.COURSE_MODULE_1) {
-                            androidx.compose.foundation.layout.Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = androidx.compose.ui.Alignment.Center
-                            ) {
-                                androidx.compose.material3.Text("Módulo 1 — Em breve")
-                            }
+                            com.localpulse.app.presentation.course.CourseModule1Screen(
+                                onCourseCompleted = {
+                                    navController.navigate(Routes.LOGIN) {
+                                        popUpTo(Routes.COURSE_MODULE_1) { inclusive = true }
+                                    }
+                                }
+                            )
                         }
 
                         composable(Routes.LOGIN) {
