@@ -46,7 +46,7 @@ fun CourseModule1Screen(
         AnimatedContent(
             targetState = showQuiz,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "Course Content"
+            label = "Dicas Pro Content"
         ) { isQuiz ->
             if (!isQuiz) {
                 LessonContent(

@@ -27,12 +27,12 @@ class AppPreferences @Inject constructor(
         val HAS_SEEN_ONBOARDING = booleanPreferencesKey("has_seen_onboarding")
     }
 
-    /** Verifica se o usuário já viu o módulo introdutório. */
+    /** Verifica se o usuário já viu o Dicas Pro. */
     val hasSeenOnboarding: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[HAS_SEEN_ONBOARDING] ?: false
     }
 
-    /** Marca que o usuário já viu o módulo introdutório. */
+    /** Marca que o usuário já viu o Dicas Pro. */
     suspend fun setHasSeenOnboarding(seen: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[HAS_SEEN_ONBOARDING] = seen
