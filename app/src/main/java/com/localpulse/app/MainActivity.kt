@@ -65,25 +65,57 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     val uiState by loginViewModel.uiState.collectAsState()
 
-                    LaunchedEffect(uiState) {
-                        if (uiState is LoginUiState.Success) {
-                            if ((uiState as LoginUiState.Success).user.hasBusinessProfile) {
-                                navController.navigate(Routes.HOME) {
-                                    popUpTo(Routes.LOGIN) { inclusive = true }
-                                }
-                            } else {
-                                navController.navigate(Routes.ONBOARDING_BUSINESS) {
-                                    popUpTo(Routes.LOGIN) { inclusive = true }
-                                }
-                            }
-                        }
-                    }
-
                     NavHost(
                         navController = navController,
-                        startDestination = Routes.LOGIN
+                        startDestination = Routes.SPLASH
                     ) {
+                        composable(Routes.SPLASH) {
+                            com.localpulse.app.presentation.splash.SplashScreen(
+                                onNavigate = { destination ->
+                                    when (destination) {
+                                        com.localpulse.app.presentation.splash.SplashDestination.COURSE_MODULE_1 -> {
+                                            navController.navigate(Routes.COURSE_MODULE_1) {
+                                                popUpTo(Routes.SPLASH) { inclusive = true }
+                                            }
+                                        }
+                                        com.localpulse.app.presentation.splash.SplashDestination.LOGIN -> {
+                                            navController.navigate(Routes.LOGIN) {
+                                                popUpTo(Routes.SPLASH) { inclusive = true }
+                                            }
+                                        }
+                                        com.localpulse.app.presentation.splash.SplashDestination.HOME -> {
+                                            navController.navigate(Routes.HOME) {
+                                                popUpTo(Routes.SPLASH) { inclusive = true }
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        composable(Routes.COURSE_MODULE_1) {
+                            androidx.compose.foundation.layout.Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = androidx.compose.ui.Alignment.Center
+                            ) {
+                                androidx.compose.material3.Text("Módulo 1 — Em breve")
+                            }
+                        }
+
                         composable(Routes.LOGIN) {
+                            LaunchedEffect(uiState) {
+                                if (uiState is LoginUiState.Success) {
+                                    if ((uiState as LoginUiState.Success).user.hasBusinessProfile) {
+                                        navController.navigate(Routes.HOME) {
+                                            popUpTo(Routes.LOGIN) { inclusive = true }
+                                        }
+                                    } else {
+                                        navController.navigate(Routes.ONBOARDING_BUSINESS) {
+                                            popUpTo(Routes.LOGIN) { inclusive = true }
+                                        }
+                                    }
+                                }
+                            }
                             LoginScreen(
                                 uiState = uiState,
                                 onSignInClick = {
