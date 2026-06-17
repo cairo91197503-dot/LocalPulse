@@ -40,12 +40,16 @@ import androidx.compose.foundation.layout.width
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
+    dailyTasksViewModel: com.localpulse.app.presentation.tasks.DailyTasksViewModel = hiltViewModel(),
     onSignOutClick: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToDiagnosis: () -> Unit,
     onNavigateToQrCode: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val tasks by dailyTasksViewModel.tasks.collectAsState()
+    val progress by dailyTasksViewModel.progress.collectAsState()
+    val isTasksLoading by dailyTasksViewModel.isLoading.collectAsState()
 
     Scaffold(
         topBar = {
@@ -111,7 +115,14 @@ fun HomeScreen(
                         user = state.user,
                         reputationScore = state.reputationScore,
                         isRefreshing = isRefreshing,
-                        onRefresh = { viewModel.loadData() },
+                        tasks = tasks,
+                        progress = progress,
+                        isTasksLoading = isTasksLoading,
+                        onCompleteTask = dailyTasksViewModel::completeTask,
+                        onRefresh = { 
+                            viewModel.loadData()
+                            dailyTasksViewModel.loadTasks()
+                        },
                         onNavigateToDiagnosis = onNavigateToDiagnosis,
                         onNavigateToQrCode = onNavigateToQrCode
                     )
@@ -146,6 +157,10 @@ fun DashboardContent(
     user: User?, 
     reputationScore: Int,
     isRefreshing: Boolean,
+    tasks: List<com.localpulse.app.domain.model.DailyTask>,
+    progress: com.localpulse.app.domain.model.UserProgress?,
+    isTasksLoading: Boolean,
+    onCompleteTask: (String, Int) -> Unit,
     onRefresh: () -> Unit,
     onNavigateToDiagnosis: () -> Unit,
     onNavigateToQrCode: () -> Unit
@@ -185,6 +200,15 @@ fun DashboardContent(
                         )
                     }
                 }
+            }
+
+            item {
+                com.localpulse.app.presentation.tasks.DailyTasksCard(
+                    tasks = tasks,
+                    progress = progress,
+                    isLoading = isTasksLoading,
+                    onCompleteTask = onCompleteTask
+                )
             }
 
         item {

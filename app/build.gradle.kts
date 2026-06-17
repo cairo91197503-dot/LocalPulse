@@ -83,5 +83,6 @@ dependencies {
     implementation(libs.play.services.auth)
     implementation(libs.coil.compose)
     implementation(libs.zxing.core)
+    implementation(libs.androidx.work)
     debugImplementation(libs.androidx.ui.tooling)
 }

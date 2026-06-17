@@ -17,6 +17,7 @@ datastore = "1.1.1"
 coil = "2.6.0"
 secrets = "2.0.1"
 zxing = "3.5.3"
+workManager = "2.9.0"
 
 [libraries]
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -43,6 +44,7 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+androidx-work = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workManager" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

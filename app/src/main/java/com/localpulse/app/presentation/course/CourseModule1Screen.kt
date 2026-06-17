@@ -1,6 +1,7 @@
 package com.localpulse.app.presentation.course
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -26,48 +27,21 @@ fun CourseModule1Screen(
     onCourseCompleted: () -> Unit
 ) {
     val currentPage by viewModel.currentPage.collectAsState()
-    val showQuiz by viewModel.showQuiz.collectAsState()
-    val currentQuizIndex by viewModel.currentQuizIndex.collectAsState()
-    val selectedAnswer by viewModel.selectedAnswer.collectAsState()
-    val quizScore by viewModel.quizScore.collectAsState()
-    val moduleCompleted by viewModel.moduleCompleted.collectAsState()
-
-    LaunchedEffect(moduleCompleted) {
-        if (moduleCompleted) {
-            viewModel.completeModule()
-            onCourseCompleted()
-        }
-    }
 
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().systemBarsPadding(),
         color = MaterialTheme.colorScheme.background
     ) {
-        AnimatedContent(
-            targetState = showQuiz,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "Dicas Pro Content"
-        ) { isQuiz ->
-            if (!isQuiz) {
-                LessonContent(
-                    lesson = viewModel.lessons[currentPage],
-                    currentPage = currentPage,
-                    totalPages = viewModel.lessons.size,
-                    onNext = { viewModel.nextPage() },
-                    onPrevious = { viewModel.previousPage() }
-                )
-            } else {
-                QuizContent(
-                    question = viewModel.quizQuestions[currentQuizIndex],
-                    currentIndex = currentQuizIndex,
-                    totalQuestions = viewModel.quizQuestions.size,
-                    selectedAnswer = selectedAnswer,
-                    score = quizScore,
-                    onSelectAnswer = { viewModel.selectAnswer(it) },
-                    onNext = { viewModel.nextQuestion() }
-                )
+        LessonContent(
+            lesson = viewModel.lessons[currentPage],
+            currentPage = currentPage,
+            totalPages = viewModel.lessons.size,
+            onNext = { viewModel.nextPage() },
+            onComplete = {
+                viewModel.completeModule()
+                onCourseCompleted()
             }
-        }
+        )
     }
 }
 
@@ -77,7 +51,7 @@ private fun LessonContent(
     currentPage: Int,
     totalPages: Int,
     onNext: () -> Unit,
-    onPrevious: () -> Unit
+    onComplete: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -90,7 +64,7 @@ private fun LessonContent(
         // Emoji grande
         Text(
             text = lesson.emoji,
-            fontSize = 80.sp,
+            fontSize = 72.sp,
             textAlign = TextAlign.Center
         )
 
@@ -130,10 +104,10 @@ private fun LessonContent(
                     lesson.bulletPoints.forEach { point ->
                         Row(
                             modifier = Modifier.padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.Top
                         ) {
-                            Text("✓ ", color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold)
+                            Text("• ", color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
                             Text(
                                 text = point,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -153,176 +127,42 @@ private fun LessonContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(totalPages) { index ->
+                val width by animateDpAsState(targetValue = if (index == currentPage) 24.dp else 8.dp, label = "dotWidth")
                 Box(
                     modifier = Modifier
-                        .size(if (index == currentPage) 10.dp else 8.dp)
+                        .height(8.dp)
+                        .width(width)
                         .clip(CircleShape)
                         .background(
                             if (index == currentPage)
                                 MaterialTheme.colorScheme.primary
                             else
-                                MaterialTheme.colorScheme.outline
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                         )
                 )
             }
         }
 
-        Spacer(Modifier.height(24.dp))
-
-        // Botões
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            if (currentPage > 0) {
-                OutlinedButton(
-                    onClick = onPrevious,
-                    modifier = Modifier.weight(1f).height(52.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Anterior")
-                }
-            }
-            Button(
-                onClick = onNext,
-                modifier = Modifier.weight(1f).height(52.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    if (currentPage == totalPages - 1) "Fazer Quiz! 🎯" else "Próximo",
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-
-        Spacer(Modifier.height(16.dp))
-    }
-}
-
-@Composable
-private fun QuizContent(
-    question: com.localpulse.app.domain.model.QuizQuestion,
-    currentIndex: Int,
-    totalQuestions: Int,
-    selectedAnswer: Int?,
-    score: Int,
-    onSelectAnswer: (Int) -> Unit,
-    onNext: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.height(48.dp))
-
-        Text(
-            text = "Quiz 🎯",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-
-        Text(
-            text = "Pergunta ${currentIndex + 1} de $totalQuestions",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        LinearProgressIndicator(
-            progress = { (currentIndex + 1f) / totalQuestions },
-            modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp))
-        )
-
         Spacer(Modifier.height(32.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text(
-                text = question.question,
-                modifier = Modifier.padding(20.dp),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        question.options.forEachIndexed { index, option ->
-            val isSelected = selectedAnswer == index
-            val isCorrect = index == question.correctIndex
-            val hasAnswered = selectedAnswer != null
-
-            val containerColor = when {
-                hasAnswered && isCorrect -> MaterialTheme.colorScheme.primaryContainer
-                hasAnswered && isSelected && !isCorrect -> MaterialTheme.colorScheme.errorContainer
-                isSelected -> MaterialTheme.colorScheme.primaryContainer
-                else -> MaterialTheme.colorScheme.surface
-            }
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = containerColor),
-                onClick = { if (!hasAnswered) onSelectAnswer(index) }
+        // Botões
+        if (currentPage == totalPages - 1) {
+            Button(
+                onClick = onComplete,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = when {
-                            hasAnswered && isCorrect -> "✅"
-                            hasAnswered && isSelected && !isCorrect -> "❌"
-                            else -> "${('A' + index)}"
-                        },
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.width(32.dp)
-                    )
-                    Text(
-                        text = option,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
+                Text("Começar agora →", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
-        }
-
-        if (selectedAnswer != null) {
-            Spacer(Modifier.height(12.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
-            ) {
-                Text(
-                    text = "💡 ${question.explanation}",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-        }
-
-        Spacer(Modifier.weight(1f))
-
-        if (selectedAnswer != null) {
+        } else {
             Button(
                 onClick = onNext,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(12.dp)
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
-                    if (currentIndex == totalQuestions - 1) "Ver resultado! 🏆" else "Próxima pergunta",
+                    "Continuar",
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
             }
