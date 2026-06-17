@@ -65,25 +65,21 @@ fun QrCodeScreen(onNavigateBack: () -> Unit) {
             item {
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            "📱 Como usar",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Text("🔗 Como pegar seu link de avaliação",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(8.dp))
-                        Text(
-                            "1. Acesse seu Google Meu Negócio\n" +
-                            "2. Clique em \"Pedir avaliações\"\n" +
-                            "3. Copie o link gerado\n" +
-                            "4. Cole abaixo e gere seu QR Code",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        StepItem("1", "Abra o Google Maps no celular")
+                        StepItem("2", "Pesquise pelo nome do seu negócio")
+                        StepItem("3", "Toque em \"Avaliações\"")
+                        StepItem("4", "Toque nos 3 pontinhos ⋮")
+                        StepItem("5", "Selecione \"Compartilhar\"")
+                        StepItem("6", "Copie o link e cole no campo abaixo")
                     }
                 }
             }
@@ -267,4 +263,27 @@ private fun saveQrCode(context: Context, bitmap: Bitmap) {
     }
 
     Toast.makeText(context, "QR Code salvo na galeria!", Toast.LENGTH_SHORT).show()
+}
+
+@Composable
+private fun StepItem(number: String, text: String) {
+    Row(
+        modifier = Modifier.padding(vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            modifier = Modifier.size(24.dp),
+            shape = androidx.compose.foundation.shape.CircleShape,
+            color = MaterialTheme.colorScheme.primary
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(number,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold)
+            }
+        }
+        Spacer(Modifier.width(8.dp))
+        Text(text, style = MaterialTheme.typography.bodySmall)
+    }
 }
