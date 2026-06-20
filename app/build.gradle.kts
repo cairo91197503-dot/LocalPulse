@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.google.services)
     alias(libs.plugins.secrets)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -54,8 +55,8 @@ android {
     }
 
     secrets {
-        propertiesFileName = "secrets.properties"
-        defaultPropertiesFileName = "secrets.defaults.properties"
+        propertiesFileName = ".env"
+        defaultPropertiesFileName = ".env.example"
     }
 }
 
@@ -84,5 +85,9 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.zxing.core)
     implementation(libs.androidx.work)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.serialization)
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
     debugImplementation(libs.androidx.ui.tooling)
 }
