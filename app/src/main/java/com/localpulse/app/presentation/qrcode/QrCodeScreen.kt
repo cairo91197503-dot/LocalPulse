@@ -4,24 +4,22 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.net.Uri
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -40,7 +38,7 @@ fun QrCodeScreen(onNavigateBack: () -> Unit) {
     val context = LocalContext.current
     var reviewUrl by remember { mutableStateOf("") }
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var showQr by remember { mutableStateOf(false) }
+    var showTutorial by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -50,6 +48,14 @@ fun QrCodeScreen(onNavigateBack: () -> Unit) {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar")
                     }
+                },
+                actions = {
+                    IconButton(onClick = { showTutorial = !showTutorial }) {
+                        Icon(
+                            if (showTutorial) Icons.Default.Close else Icons.Default.Help,
+                            contentDescription = "Ajuda"
+                        )
+                    }
                 }
             )
         }
@@ -58,109 +64,200 @@ fun QrCodeScreen(onNavigateBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .systemBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-            item {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("🔗 Como pegar seu link de avaliação",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(8.dp))
-                        StepItem("1", "Abra o Google Maps no celular")
-                        StepItem("2", "Pesquise pelo nome do seu negócio")
-                        StepItem("3", "Toque em \"Avaliações\"")
-                        StepItem("4", "Toque nos 3 pontinhos ⋮")
-                        StepItem("5", "Selecione \"Compartilhar\"")
-                        StepItem("6", "Copie o link e cole no campo abaixo")
+
+            // Tutorial expandível
+            if (showTutorial) {
+                item {
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(20.dp)) {
+                            Text(
+                                "📖 Como encontrar seu link",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            Spacer(Modifier.height(16.dp))
+
+                            TutorialStepItem("1", "Abra o Google Maps", "Toque no ícone do Maps no seu celular")
+                            TutorialStepItem("2", "Busque seu negócio", "Digite o nome do seu negócio na barra de pesquisa")
+                            TutorialStepItem("3", "Abra o perfil", "Toque no card do seu negócio para expandir")
+                            TutorialStepItem("4", "Toque em Compartilhar", "Procure o ícone ↗ ou o botão \"Compartilhar\"")
+                            TutorialStepItem("5", "Copie o link", "Selecione \"Copiar link\" ou \"Link direto\"")
+                            TutorialStepItem("6", "Cole aqui", "Volte ao LocalPulse e cole o link abaixo")
+
+                            Spacer(Modifier.height(16.dp))
+
+                            Button(
+                                onClick = {
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse("https://maps.google.com")
+                                    )
+                                    context.startActivity(intent)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Default.Map, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Abrir Google Maps agora")
+                            }
+                        }
                     }
                 }
             }
 
+            // Campo de link
             item {
-                OutlinedTextField(
-                    value = reviewUrl,
-                    onValueChange = {
-                        reviewUrl = it
-                        showQr = false
-                        qrBitmap = null
-                    },
-                    label = { Text("Link de avaliação do Google") },
-                    placeholder = { Text("https://g.page/r/...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = false,
-                    maxLines = 3
-                )
-            }
+                Card(shape = RoundedCornerShape(16.dp)) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(
+                            "🔗 Link do seu negócio",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "Cole o link do Google Maps do seu negócio",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(12.dp))
 
-            item {
-                Button(
-                    onClick = {
-                        if (reviewUrl.isNotBlank()) {
-                            qrBitmap = generateQrCode(reviewUrl, 512)
-                            showQr = true
+                        OutlinedTextField(
+                            value = reviewUrl,
+                            onValueChange = {
+                                reviewUrl = it
+                                qrBitmap = null
+                            },
+                            placeholder = { Text("https://maps.app.goo.gl/...") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true,
+                            trailingIcon = {
+                                if (reviewUrl.isNotEmpty()) {
+                                    IconButton(onClick = {
+                                        reviewUrl = ""
+                                        qrBitmap = null
+                                    }) {
+                                        Icon(Icons.Default.Clear, "Limpar")
+                                    }
+                                }
+                            }
+                        )
+
+                        Spacer(Modifier.height(12.dp))
+
+                        Button(
+                            onClick = {
+                                if (reviewUrl.isNotBlank()) {
+                                    qrBitmap = generateQrCode(reviewUrl, 512)
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            enabled = reviewUrl.isNotBlank(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.QrCode, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Gerar QR Code",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    enabled = reviewUrl.isNotBlank(),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.QrCode, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Gerar QR Code", style = MaterialTheme.typography.titleMedium)
+
+                        // Dica se campo vazio
+                        if (reviewUrl.isEmpty()) {
+                            Spacer(Modifier.height(8.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Info,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    "Toque em ? para ver como encontrar o link",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
-            if (showQr && qrBitmap != null) {
+            // QR Code gerado
+            if (qrBitmap != null) {
                 item {
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
                     ) {
                         Column(
-                            modifier = Modifier.padding(24.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                "Seu QR Code",
+                                "✅ QR Code pronto!",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF2E7D32)
                             )
                             Spacer(Modifier.height(16.dp))
-                            Image(
-                                bitmap = qrBitmap!!.asImageBitmap(),
-                                contentDescription = "QR Code de avaliação",
-                                modifier = Modifier
-                                    .size(250.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                            )
+
+                            // QR Code com borda
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color.White,
+                                shadowElevation = 4.dp
+                            ) {
+                                Image(
+                                    bitmap = qrBitmap!!.asImageBitmap(),
+                                    contentDescription = "QR Code de avaliação",
+                                    modifier = Modifier
+                                        .size(220.dp)
+                                        .padding(16.dp)
+                                )
+                            }
+
                             Spacer(Modifier.height(16.dp))
                             Text(
-                                "Mostre esse QR Code no seu estabelecimento\npara clientes avaliarem no Google",
+                                "Mostre para clientes avaliarem seu negócio no Google",
                                 style = MaterialTheme.typography.bodySmall,
                                 textAlign = TextAlign.Center,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(Modifier.height(16.dp))
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
+
+                            // Botões de ação
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedButton(
                                     onClick = { shareQrCode(context, qrBitmap!!) },
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
-                                    Icon(Icons.Default.Share, contentDescription = null)
+                                    Icon(Icons.Default.Share, null, Modifier.size(18.dp))
                                     Spacer(Modifier.width(4.dp))
                                     Text("Compartilhar")
                                 }
@@ -169,7 +266,7 @@ fun QrCodeScreen(onNavigateBack: () -> Unit) {
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
-                                    Icon(Icons.Default.Download, contentDescription = null)
+                                    Icon(Icons.Default.Download, null, Modifier.size(18.dp))
                                     Spacer(Modifier.width(4.dp))
                                     Text("Salvar")
                                 }
@@ -178,29 +275,65 @@ fun QrCodeScreen(onNavigateBack: () -> Unit) {
                     }
                 }
 
+                // Dica de uso
                 item {
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                "💡 Dica",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Spacer(Modifier.height(4.dp))
+                        Row(modifier = Modifier.padding(16.dp)) {
+                            Text("💡", style = MaterialTheme.typography.titleMedium)
+                            Spacer(Modifier.width(12.dp))
                             Text(
                                 "Imprima e coloque na entrada, balcão ou mesa do seu negócio. Quanto mais visível, mais avaliações você recebe!",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun TutorialStepItem(number: String, title: String, description: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Surface(
+            modifier = Modifier.size(28.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.secondary
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    number,
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(
+                title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Text(
+                description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+            )
         }
     }
 }
@@ -217,7 +350,7 @@ private fun generateQrCode(content: String, size: Int): Bitmap {
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     for (x in 0 until size) {
         for (y in 0 until size) {
-            bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
+            bitmap.setPixel(x, y, if (bitMatrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
         }
     }
     return bitmap
@@ -263,27 +396,4 @@ private fun saveQrCode(context: Context, bitmap: Bitmap) {
     }
 
     Toast.makeText(context, "QR Code salvo na galeria!", Toast.LENGTH_SHORT).show()
-}
-
-@Composable
-private fun StepItem(number: String, text: String) {
-    Row(
-        modifier = Modifier.padding(vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Surface(
-            modifier = Modifier.size(24.dp),
-            shape = androidx.compose.foundation.shape.CircleShape,
-            color = MaterialTheme.colorScheme.primary
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(number,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold)
-            }
-        }
-        Spacer(Modifier.width(8.dp))
-        Text(text, style = MaterialTheme.typography.bodySmall)
-    }
 }
