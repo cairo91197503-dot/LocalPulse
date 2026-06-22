@@ -104,8 +104,12 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.COURSE_MODULE_1) {
                             com.localpulse.app.presentation.course.CourseModule1Screen(
                                 onCourseCompleted = {
-                                    navController.navigate(Routes.LOGIN) {
-                                        popUpTo(Routes.COURSE_MODULE_1) { inclusive = true }
+                                    if (navController.previousBackStackEntry != null && navController.previousBackStackEntry?.destination?.route != Routes.SPLASH) {
+                                        navController.popBackStack()
+                                    } else {
+                                        navController.navigate(Routes.LOGIN) {
+                                            popUpTo(Routes.COURSE_MODULE_1) { inclusive = true }
+                                        }
                                     }
                                 }
                             )
@@ -176,6 +180,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToQrCode = {
                                     navController.navigate(Routes.QR_CODE)
+                                },
+                                onNavigateToTips = {
+                                    navController.navigate(Routes.TIPS)
                                 }
                             )
                         }
@@ -222,6 +229,12 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.QR_CODE) {
                             com.localpulse.app.presentation.qrcode.QrCodeScreen(
                                 onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable(Routes.TIPS) {
+                            com.localpulse.app.presentation.tips.TipsScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToCourse = { navController.navigate(Routes.COURSE_MODULE_1) }
                             )
                         }
                     }

@@ -44,7 +44,8 @@ fun HomeScreen(
     onSignOutClick: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToDiagnosis: () -> Unit,
-    onNavigateToQrCode: () -> Unit
+    onNavigateToQrCode: () -> Unit,
+    onNavigateToTips: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val tasks by dailyTasksViewModel.tasks.collectAsState()
@@ -124,7 +125,8 @@ fun HomeScreen(
                             dailyTasksViewModel.loadTasks()
                         },
                         onNavigateToDiagnosis = onNavigateToDiagnosis,
-                        onNavigateToQrCode = onNavigateToQrCode
+                        onNavigateToQrCode = onNavigateToQrCode,
+                        onNavigateToTips = onNavigateToTips
                     )
                 }
                 is HomeUiState.Error -> {
@@ -163,7 +165,8 @@ fun DashboardContent(
     onCompleteTask: (String, Int) -> Unit,
     onRefresh: () -> Unit,
     onNavigateToDiagnosis: () -> Unit,
-    onNavigateToQrCode: () -> Unit
+    onNavigateToQrCode: () -> Unit,
+    onNavigateToTips: () -> Unit
 ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -210,6 +213,49 @@ fun DashboardContent(
                     onCompleteTask = onCompleteTask
                 )
             }
+
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToTips() },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            "Dicas e Tutoriais",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "Reveja apresentações e aprenda mais",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+            }
+        }
 
         item {
             // Reputação Card
