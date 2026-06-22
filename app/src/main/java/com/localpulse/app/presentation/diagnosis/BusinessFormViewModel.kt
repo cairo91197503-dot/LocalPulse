@@ -19,8 +19,23 @@ class BusinessFormViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<BusinessFormUiState>(BusinessFormUiState.Idle)
     val uiState: StateFlow<BusinessFormUiState> = _uiState.asStateFlow()
 
+    private val _currentStep = MutableStateFlow(0)
+    val currentStep: StateFlow<Int> = _currentStep.asStateFlow()
+
     private val _formData = MutableStateFlow(BusinessData())
     val formData: StateFlow<BusinessData> = _formData.asStateFlow()
+
+    fun updateBusinessLink(link: String) {
+        _formData.value = _formData.value.copy(businessLink = link)
+    }
+
+    fun goToStep2() {
+        _currentStep.value = 1
+    }
+
+    fun goToStep1() {
+        _currentStep.value = 0
+    }
 
     fun updateBusinessName(name: String) {
         _formData.value = _formData.value.copy(businessName = name)
