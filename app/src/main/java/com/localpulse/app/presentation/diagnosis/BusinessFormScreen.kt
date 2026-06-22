@@ -280,7 +280,7 @@ private fun Step2QuickData(
             Card(shape = RoundedCornerShape(16.dp)) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        "⭐ Nota atual: ${"$"}{String.format("%.1f", formData.averageRating)}",
+                        "⭐ Nota atual: ${String.format("%.1f", formData.averageRating)}",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -303,7 +303,7 @@ private fun Step2QuickData(
             Card(shape = RoundedCornerShape(16.dp)) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        "💬 Total de avaliações: ${"$"}{formData.totalReviews}",
+                        "💬 Total de avaliações: ${formData.totalReviews}",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -325,7 +325,7 @@ private fun Step2QuickData(
             Card(shape = RoundedCornerShape(16.dp)) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        "↩️ % respondidas: ${"$"}{formData.respondedPercentage}%",
+                        "↩️ % respondidas: ${formData.respondedPercentage}%",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
