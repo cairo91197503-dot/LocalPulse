@@ -216,7 +216,7 @@ private fun ExpandableTipCard(
 
 @Composable
 private fun TipBullet(title: String, description: String) {
-    Row(crossAxisAlignment = Alignment.Top) {
+    Row(verticalAlignment = Alignment.Top) {
         Text(
             "•",
             style = MaterialTheme.typography.titleMedium,
