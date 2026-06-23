@@ -38,7 +38,6 @@ fun QrCodeScreen(onNavigateBack: () -> Unit) {
     val context = LocalContext.current
     var reviewUrl by remember { mutableStateOf("") }
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var showTutorial by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -48,14 +47,6 @@ fun QrCodeScreen(onNavigateBack: () -> Unit) {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar")
                     }
-                },
-                actions = {
-                    IconButton(onClick = { showTutorial = !showTutorial }) {
-                        Icon(
-                            if (showTutorial) Icons.Default.Close else Icons.Default.Help,
-                            contentDescription = "Ajuda"
-                        )
-                    }
                 }
             )
         }
@@ -64,142 +55,123 @@ fun QrCodeScreen(onNavigateBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 24.dp)
                 .systemBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
 
-            // Tutorial expandível
-            if (showTutorial) {
-                item {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(20.dp)) {
+            item {
+                Text(
+                    "🔗 Link do seu negócio",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Cole o link do Google Maps do seu negócio para gerarmos o QR Code.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            item {
+                OutlinedTextField(
+                    value = reviewUrl,
+                    onValueChange = {
+                        reviewUrl = it
+                        qrBitmap = null
+                    },
+                    label = { Text("Link do Google Maps") },
+                    placeholder = { Text("https://maps.app.goo.gl/...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    trailingIcon = {
+                        if (reviewUrl.isNotEmpty()) {
+                            IconButton(onClick = {
+                                reviewUrl = ""
+                                qrBitmap = null
+                            }) {
+                                Icon(Icons.Default.Clear, "Limpar")
+                            }
+                        }
+                    }
+                )
+            }
+
+            // Tutorial como pegar o link
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.Help,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
                             Text(
-                                "📖 Como encontrar seu link",
-                                style = MaterialTheme.typography.titleMedium,
+                                "Como encontrar o link?",
+                                style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
-                            Spacer(Modifier.height(16.dp))
-
-                            TutorialStepItem("1", "Abra o Google Maps", "Toque no ícone do Maps no seu celular")
-                            TutorialStepItem("2", "Busque seu negócio", "Digite o nome do seu negócio na barra de pesquisa")
-                            TutorialStepItem("3", "Abra o perfil", "Toque no card do seu negócio para expandir")
-                            TutorialStepItem("4", "Toque em Compartilhar", "Procure o ícone ↗ ou o botão \"Compartilhar\"")
-                            TutorialStepItem("5", "Copie o link", "Selecione \"Copiar link\" ou \"Link direto\"")
-                            TutorialStepItem("6", "Cole aqui", "Volte ao LocalPulse e cole o link abaixo")
-
-                            Spacer(Modifier.height(16.dp))
-
-                            Button(
-                                onClick = {
-                                    val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse("https://maps.google.com")
-                                    )
-                                    context.startActivity(intent)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(Icons.Default.Map, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Abrir Google Maps agora")
-                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        TutorialStepItem("1", "Abra o Google Maps", "Toque no ícone do Maps no seu celular")
+                        TutorialStepItem("2", "Busque seu negócio", "Digite o nome do seu negócio na barra de pesquisa")
+                        TutorialStepItem("3", "Abra o perfil", "Toque no card do seu negócio para expandir")
+                        TutorialStepItem("4", "Toque em Compartilhar", "Procure o ícone ↗ ou o botão \"Compartilhar\"")
+                        TutorialStepItem("5", "Copie o link", "Selecione \"Copiar link\" ou \"Link direto\"")
+                        TutorialStepItem("6", "Cole aqui", "Volte ao LocalPulse e cole o link no campo acima")
+                        Spacer(Modifier.height(12.dp))
+                        OutlinedButton(
+                            onClick = {
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse("https://maps.google.com")
+                                )
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.Map, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Abrir Google Maps")
                         }
                     }
                 }
             }
 
-            // Campo de link
             item {
-                Card(shape = RoundedCornerShape(16.dp)) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Text(
-                            "🔗 Link do seu negócio",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "Cole o link do Google Maps do seu negócio",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.height(12.dp))
-
-                        OutlinedTextField(
-                            value = reviewUrl,
-                            onValueChange = {
-                                reviewUrl = it
-                                qrBitmap = null
-                            },
-                            placeholder = { Text("https://maps.app.goo.gl/...") },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            singleLine = true,
-                            trailingIcon = {
-                                if (reviewUrl.isNotEmpty()) {
-                                    IconButton(onClick = {
-                                        reviewUrl = ""
-                                        qrBitmap = null
-                                    }) {
-                                        Icon(Icons.Default.Clear, "Limpar")
-                                    }
-                                }
-                            }
-                        )
-
-                        Spacer(Modifier.height(12.dp))
-
-                        Button(
-                            onClick = {
-                                if (reviewUrl.isNotBlank()) {
-                                    qrBitmap = generateQrCode(reviewUrl, 512)
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp),
-                            enabled = reviewUrl.isNotBlank(),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(Icons.Default.QrCode, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                "Gerar QR Code",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
-                            )
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        if (reviewUrl.isNotBlank()) {
+                            qrBitmap = generateQrCode(reviewUrl, 512)
                         }
-
-                        // Dica se campo vazio
-                        if (reviewUrl.isEmpty()) {
-                            Spacer(Modifier.height(8.dp))
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.Info,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(Modifier.width(6.dp))
-                                Text(
-                                    "Toque em ? para ver como encontrar o link",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    enabled = reviewUrl.isNotBlank(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Default.QrCode, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "Gerar QR Code",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
