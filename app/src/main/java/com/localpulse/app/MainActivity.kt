@@ -201,9 +201,18 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
+                            val user = (homeUiState as? HomeUiState.Success)?.user
+
                             SettingsScreen(
+                                user = user,
                                 onNavigateBack = { navController.popBackStack() },
-                                onSignOut = { homeViewModel.signOut() }
+                                onSignOut = { homeViewModel.signOut() },
+                                onNavigateToPrivacyPolicy = { navController.navigate(Routes.PRIVACY_POLICY) }
+                            )
+                        }
+                        composable(Routes.PRIVACY_POLICY) {
+                            com.localpulse.app.presentation.settings.PrivacyPolicyScreen(
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
                         composable(Routes.BUSINESS_FORM) {

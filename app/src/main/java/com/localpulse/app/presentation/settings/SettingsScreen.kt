@@ -1,8 +1,10 @@
 package com.localpulse.app.presentation.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -16,15 +18,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.localpulse.app.domain.model.User
 import com.localpulse.app.ui.theme.LocalPulseTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    user: User?,
     onNavigateBack: () -> Unit,
-    onSignOut: () -> Unit
+    onSignOut: () -> Unit,
+    onNavigateToPrivacyPolicy: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -58,11 +64,51 @@ fun SettingsScreen(
                 )
             }
             item {
-                SettingsItem(
-                    icon = Icons.Default.Person,
-                    title = "Perfil",
-                    subtitle = "Informações da sua conta Google"
-                )
+                if (user != null) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = user.name.take(1).uppercase(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column {
+                                Text(
+                                    text = user.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = user.email,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    SettingsItem(
+                        icon = Icons.Default.Person,
+                        title = "Perfil",
+                        subtitle = "Carregando informações..."
+                    )
+                }
             }
             item {
                 SettingsItem(
@@ -86,14 +132,15 @@ fun SettingsScreen(
                 SettingsItem(
                     icon = Icons.Default.Info,
                     title = "Versão",
-                    subtitle = "1.0.0"
+                    subtitle = "1.1.0"
                 )
             }
             item {
                 SettingsItem(
                     icon = Icons.Default.Lock,
                     title = "Política de Privacidade",
-                    subtitle = "Leia nossa política de privacidade"
+                    subtitle = "Leia nossa política de privacidade",
+                    onClick = onNavigateToPrivacyPolicy
                 )
             }
         }
@@ -164,8 +211,10 @@ fun SettingsItem(
 fun SettingsScreenPreview() {
     LocalPulseTheme {
         SettingsScreen(
+            user = null,
             onNavigateBack = {},
-            onSignOut = {}
+            onSignOut = {},
+            onNavigateToPrivacyPolicy = {}
         )
     }
 }

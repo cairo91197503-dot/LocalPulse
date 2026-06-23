@@ -12,4 +12,5 @@ object Routes {
     const val COURSE_MODULE_1 = "course_module_1"
     const val TIPS = "tips"
     const val PRO_TIPS = "pro_tips"
+    const val PRIVACY_POLICY = "privacy_policy"
 }
