@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Centered Chart and Star icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,25.4 l3.5,8.1 l8.1,3.5 l-8.1,3.5 l-3.5,8.1 l-3.5,-8.1 l-8.1,-3.5 l8.1,-3.5 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M37.5,74 c0,2.5 -2,4.5 -4.5,4.5 s-4.5,-2 -4.5,-4.5 v-20 c0,-2.5 2,-4.5 4.5,-4.5 s4.5,2 4.5,4.5 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,74 c0,2.5 -2,4.5 -4.5,4.5 s-4.5,-2 -4.5,-4.5 v-35 c0,-2.5 2,-4.5 4.5,-4.5 s4.5,2 4.5,4.5 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M70.5,74 c0,2.5 -2,4.5 -4.5,4.5 s-4.5,-2 -4.5,-4.5 v-12 c0,-2.5 2,-4.5 4.5,-4.5 s4.5,2 4.5,4.5 z" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M30,86 l48,-12" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M78,74 l4,-10 l4,10 z" />
+</vector>
