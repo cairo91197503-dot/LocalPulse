@@ -14,10 +14,10 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.localpulse.app"
+        applicationId = "com.aistudio.localpulse.hswtxb"
         minSdk = 26
         targetSdk = 34
-        versionCode = 2
+        versionCode = 8
         versionName = "1.1.0"
     }
 
