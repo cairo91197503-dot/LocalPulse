@@ -234,7 +234,13 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.TIPS) {
                             com.localpulse.app.presentation.tips.TipsScreen(
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToCourse = { navController.navigate(Routes.COURSE_MODULE_1) }
+                                onNavigateToCourse = { navController.navigate(Routes.COURSE_MODULE_1) },
+                                onNavigateToProTips = { navController.navigate(Routes.PRO_TIPS) }
+                            )
+                        }
+                        composable(Routes.PRO_TIPS) {
+                            com.localpulse.app.presentation.tips.ProTipsScreen(
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
                     }

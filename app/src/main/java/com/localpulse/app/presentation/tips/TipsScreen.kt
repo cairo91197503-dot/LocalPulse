@@ -20,7 +20,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TipsScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToCourse: () -> Unit
+    onNavigateToCourse: () -> Unit,
+    onNavigateToProTips: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -96,7 +97,7 @@ fun TipsScreen(
 
             item {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().clickable { onNavigateToProTips() },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -115,12 +116,12 @@ fun TipsScreen(
                         Spacer(Modifier.width(16.dp))
                         Column {
                             Text(
-                                "Boas práticas",
+                                "Dicas Pro",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                "Dicas avançadas (Em breve)",
+                                "Estratégias avançadas de ranqueamento",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
