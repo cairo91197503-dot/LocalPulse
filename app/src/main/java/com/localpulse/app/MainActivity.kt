@@ -201,7 +201,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
-                            val user = (homeUiState as? HomeUiState.Success)?.user
+                            val user = (homeUiState as? HomeUiState.Content)?.user
 
                             SettingsScreen(
                                 user = user,
