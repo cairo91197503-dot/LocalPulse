@@ -29,6 +29,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import android.content.Context
 
 data class ProTipLesson(
     val title: String,
@@ -102,6 +104,12 @@ val proTipLessons = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProTipsScreen(onNavigateBack: () -> Unit) {
+    val context = LocalContext.current
+    val sharedPreferences = remember { context.getSharedPreferences("pro_tips_prefs", Context.MODE_PRIVATE) }
+    var completedLessons by remember {
+        mutableStateOf(sharedPreferences.getStringSet("completed", emptySet())?.mapNotNull { it.toIntOrNull() }?.toSet() ?: emptySet())
+    }
+
     var selectedLessonIndex by remember { mutableStateOf<Int?>(null) }
 
     Scaffold(
@@ -128,9 +136,20 @@ fun ProTipsScreen(onNavigateBack: () -> Unit) {
             label = "LessonTransition"
         ) { activeIndex ->
             if (activeIndex == null) {
-                LessonList(padding = padding, onLessonClick = { selectedLessonIndex = it })
+                LessonList(
+                    padding = padding,
+                    completedLessons = completedLessons,
+                    onLessonClick = { selectedLessonIndex = it }
+                )
             } else {
-                ActiveLessonView(padding = padding, lesson = proTipLessons[activeIndex]) {
+                ActiveLessonView(
+                    padding = padding,
+                    lesson = proTipLessons[activeIndex]
+                ) {
+                    // Mark as completed
+                    val newCompleted = completedLessons + activeIndex
+                    sharedPreferences.edit().putStringSet("completed", newCompleted.map { it.toString() }.toSet()).apply()
+                    completedLessons = newCompleted
                     selectedLessonIndex = null
                 }
             }
@@ -139,7 +158,11 @@ fun ProTipsScreen(onNavigateBack: () -> Unit) {
 }
 
 @Composable
-private fun LessonList(padding: PaddingValues, onLessonClick: (Int) -> Unit) {
+private fun LessonList(
+    padding: PaddingValues,
+    completedLessons: Set<Int>,
+    onLessonClick: (Int) -> Unit
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -166,10 +189,15 @@ private fun LessonList(padding: PaddingValues, onLessonClick: (Int) -> Unit) {
 
         items(proTipLessons.size) { index ->
             val lesson = proTipLessons[index]
+            val isCompleted = completedLessons.contains(index)
+            
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isCompleted) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -188,12 +216,23 @@ private fun LessonList(padding: PaddingValues, onLessonClick: (Int) -> Unit) {
                         }
                         Spacer(Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = lesson.title,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = lesson.title,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                if (isCompleted) {
+                                    Icon(
+                                        Icons.Default.CheckCircle,
+                                        contentDescription = "Concluída",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = lesson.description,
@@ -208,7 +247,7 @@ private fun LessonList(padding: PaddingValues, onLessonClick: (Int) -> Unit) {
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Iniciar Lição", fontWeight = FontWeight.Bold)
+                        Text(if (isCompleted) "Revisar Lição" else "Iniciar Lição", fontWeight = FontWeight.Bold)
                     }
                 }
             }
