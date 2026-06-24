@@ -46,7 +46,7 @@ compile_commands.json
 CTestTestfile.cmake
 
 # Google Services
-google-services.json
+# google-services.json (Removed so it can be pushed to GitHub)
 
 # Environment variables
 .env
