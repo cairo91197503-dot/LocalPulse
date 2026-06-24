@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "763259258045",
+    "firebase_url": "https://localpulse-526a5-default-rtdb.firebaseio.com",
+    "project_id": "localpulse-526a5",
+    "storage_bucket": "localpulse-526a5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:763259258045:android:b53890d260f35007ab23d4",
+        "android_client_info": {
+          "package_name": "com.localpulse.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "763259258045-g5kogb6c1fv8sn75cmt1o6i6gnkeab2s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.localpulse.app",
+            "certificate_hash": "f33eca4aba0942052def9dc41bf08b84f9847b63"
+          }
+        },
+        {
+          "client_id": "763259258045-4e5rveedm64jpfp1vp932mvc58d547vr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfATrTTHGI7NGIPijSHodU_nvu5Ri4dpo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "763259258045-4e5rveedm64jpfp1vp932mvc58d547vr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

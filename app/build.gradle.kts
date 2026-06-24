@@ -11,12 +11,13 @@ plugins {
 
 android {
     namespace = "com.localpulse.app"
-    compileSdk = 34
+    compileSdk = 35
+    buildToolsVersion = "35.0.0"
 
     defaultConfig {
         applicationId = "com.localpulse.app"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 2
         versionName = "1.1.0"
     }
