@@ -1,9 +1,6 @@
 package com.localpulse.app.presentation.tips
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,397 +13,225 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import androidx.compose.ui.platform.LocalContext
-import android.content.Context
-
-data class ProTipLesson(
-    val title: String,
-    val description: String,
-    val icon: ImageVector,
-    val details: List<Pair<String, String>>
-)
-
-val proTipLessons = listOf(
-    ProTipLesson(
-        title = "1. Como o Google decide o Ranking",
-        description = "Entenda o algoritmo e os 3 fatores principais que fazem você aparecer no topo.",
-        icon = Icons.Default.TrendingUp,
-        details = listOf(
-            "Relevância" to "O quão bem seu perfil corresponde à busca do cliente (ex: usar as palavras certas).",
-            "Distância" to "Proximidade do usuário. Fator orgânico muito importante.",
-            "Popularidade" to "Quantidade e qualidade das avaliações, fotos, cliques e presença online."
-        )
-    ),
-    ProTipLesson(
-        title = "2. Configuração Impecável",
-        description = "As configurações obrigatórias que a maioria das empresas erra.",
-        icon = Icons.Default.Settings,
-        details = listOf(
-            "Nome Real" to "Use o nome exato da sua empresa no mundo real.",
-            "Categoria Principal" to "O fator individual mais importante. Seja específico (ex: 'Clínica Odontológica' em vez de apenas 'Saúde'). Adicione categorias secundárias compatíveis.",
-            "Completude" to "Cadastre todos os serviços, produtos e mantenha os horários 100% atualizados."
-        )
-    ),
-    ProTipLesson(
-        title = "3. A Mina de Ouro: Avaliações",
-        description = "Estratégias avançadas para conseguir notas 5 estrelas constantemente.",
-        icon = Icons.Default.Star,
-        details = listOf(
-            "Frequência" to "O segredo não é só ter muitas, mas receber avaliações de forma *constante*. Peça sempre aos clientes.",
-            "Responda TODAS" to "Agradeça as notas positivas. Para as negativas, seja profissional e ofereça uma solução. O Google e os clientes novos observam isso.",
-            "Metas" to "Alcance rapidamente 50 avaliações com nota superior a 4.7."
-        )
-    ),
-    ProTipLesson(
-        title = "4. Fotos e Postagens",
-        description = "O conteúdo visual que converte visitantes em clientes.",
-        icon = Icons.Default.CameraAlt,
-        details = listOf(
-            "Fotos da Empresa" to "Mostre a fachada (essencial para clientes encontrarem fisicamente), o interior (traz confiança) e a equipe.",
-            "Frequência Visual" to "Suba de 3 a 5 fotos de boa qualidade por semana.",
-            "Postagens Frequentes" to "2 a 3 por semana. Publique promoções, bastidores ou depoimentos."
-        )
-    ),
-    ProTipLesson(
-        title = "5. SEO Local",
-        description = "Otimizações ocultas que turbinam seu alcance.",
-        icon = Icons.Default.Search,
-        details = listOf(
-            "Palavras-chave" to "Inclua seu serviço principal e sua cidade/bairro nas postagens e respostas a avaliações de forma totalmente natural.",
-            "Consistência NAP" to "Nome, Endereço e Telefone devem ser *exatamente iguais* no seu site formatação e no Google."
-        )
-    ),
-    ProTipLesson(
-        title = "6. Erros Restritivos (Evite!)",
-        description = "O que NUNCA fazer se você não quiser ser punido pelo Google.",
-        icon = Icons.Default.Warning,
-        details = listOf(
-            "Falsificações" to "Se comprar avaliações falsas, você corre grande risco de ter o perfil derrubado ou sua visibilidade banida.",
-            "Spam de Palavras-chave" to "A prática de encher o título com serviços (ex: 'João Mecânico Troca de Óleo Anápolis') diminui a autoridade.",
-            "Desatualização" to "Lojas fechadas com horário como 'aberto' enfurecem os usuários, gerando notas negativas."
-        )
-    )
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProTipsScreen(onNavigateBack: () -> Unit) {
-    val context = LocalContext.current
-    val sharedPreferences = remember { context.getSharedPreferences("pro_tips_prefs", Context.MODE_PRIVATE) }
-    var completedLessons by remember {
-        mutableStateOf(sharedPreferences.getStringSet("completed", emptySet())?.mapNotNull { it.toIntOrNull() }?.toSet() ?: emptySet())
-    }
-
-    var selectedLessonIndex by remember { mutableStateOf<Int?>(null) }
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (selectedLessonIndex == null) "Dicas Pro" else proTipLessons[selectedLessonIndex!!].title) },
+                title = { Text("Dicas Pro") },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        if (selectedLessonIndex == null) {
-                            onNavigateBack()
-                        } else {
-                            selectedLessonIndex = null
-                        }
-                    }) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar")
                     }
                 }
             )
         }
     ) { padding ->
-        AnimatedContent(
-            targetState = selectedLessonIndex,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "LessonTransition"
-        ) { activeIndex ->
-            if (activeIndex == null) {
-                LessonList(
-                    padding = padding,
-                    completedLessons = completedLessons,
-                    onLessonClick = { selectedLessonIndex = it }
-                )
-            } else {
-                ActiveLessonView(
-                    padding = padding,
-                    lesson = proTipLessons[activeIndex]
-                ) {
-                    // Mark as completed
-                    val newCompleted = completedLessons + activeIndex
-                    sharedPreferences.edit().putStringSet("completed", newCompleted.map { it.toString() }.toSet()).apply()
-                    completedLessons = newCompleted
-                    selectedLessonIndex = null
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LessonList(
-    padding: PaddingValues,
-    completedLessons: Set<Int>,
-    onLessonClick: (Int) -> Unit
-) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(vertical = 16.dp)
-    ) {
-        item {
-            Text(
-                "Domine o Google Meu Negócio",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Complete as lições abaixo para dominar o ranqueamento local e atrair mais clientes.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(Modifier.height(16.dp))
-        }
-
-        items(proTipLessons.size) { index ->
-            val lesson = proTipLessons[index]
-            val isCompleted = completedLessons.contains(index)
-            
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isCompleted) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                )
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                lesson.icon,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                        Spacer(Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = lesson.title,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                if (isCompleted) {
-                                    Icon(
-                                        Icons.Default.CheckCircle,
-                                        contentDescription = "Concluída",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            }
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = lesson.description,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    Button(
-                        onClick = { onLessonClick(index) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(if (isCompleted) "Revisar Lição" else "Iniciar Lição", fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ActiveLessonView(padding: PaddingValues, lesson: ProTipLesson, onComplete: () -> Unit) {
-    val pagerState = rememberPagerState(pageCount = { lesson.details.size + 1 })
-    val coroutineScope = rememberCoroutineScope()
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        HorizontalPager(
-            state = pagerState,
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentPadding = PaddingValues(horizontal = 32.dp),
-            pageSpacing = 16.dp
-        ) { page ->
-            Card(
-                modifier = Modifier.fillMaxSize(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            ) {
-                if (page == 0) {
-                    // Intro page
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                lesson.icon,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(72.dp)
-                            )
-                        }
-                        Spacer(Modifier.height(32.dp))
-                        Text(
-                            text = lesson.title,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(Modifier.height(16.dp))
-                        Text(
-                            text = lesson.description,
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    // Detail page
-                    val detailIndex = page - 1
-                    val detail = lesson.details[detailIndex]
-                    
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(80.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(vertical = 16.dp)
+        ) {
+            item {
+                Text(
+                    "Domine o Google Meu Negócio",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "As melhores estratégias para colocar sua empresa no Top 3 das buscas locais. Baseado em recomendações oficiais.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(8.dp))
+            }
+
+            item {
+                ExpandableTipCard(
+                    title = "1. Como o Google decide o Ranking",
+                    icon = Icons.Default.TrendingUp
+                ) {
+                    TipBullet("Relevância:", "O quão bem seu perfil corresponde à busca do cliente (ex: usar as palavras certas).")
+                    TipBullet("Distância:", "Proximidade do usuário. Fator orgânico muito importante.")
+                    TipBullet("Popularidade:", "Quantidade e qualidade das avaliações, fotos, cliques e presença online.")
+                }
+            }
+
+            item {
+                ExpandableTipCard(
+                    title = "2. Configuração Impecável",
+                    icon = Icons.Default.Settings
+                ) {
+                    TipBullet("Nome Real:", "Use o nome exato da sua empresa no mundo real.")
+                    TipBullet("Categoria Principal:", "O fator individual mais importante. Seja específico (ex: 'Clínica Odontológica' em vez de apenas 'Saúde'). Adicione categorias secundárias compatíveis.")
+                    TipBullet("Completude:", "Cadastre todos os serviços, produtos e mantenha os horários 100% atualizados.")
+                }
+            }
+
+            item {
+                ExpandableTipCard(
+                    title = "3. A Mina de Ouro: Avaliações",
+                    icon = Icons.Default.Star
+                ) {
+                    TipBullet("Frequência:", "O segredo não é só ter muitas, mas receber avaliações de forma *constante*. Peça sempre aos clientes.")
+                    TipBullet("Responda TODAS:", "Agradeça as notas positivas. Para as negativas, seja profissional e ofereça uma solução. O Google e os clientes novos observam isso.")
+                    TipBullet("Metas:", "Alcance rapidamente 50 avaliações com nota superior a 4.7.")
+                }
+            }
+
+            item {
+                ExpandableTipCard(
+                    title = "4. Fotos e Postagens",
+                    icon = Icons.Default.CameraAlt
+                ) {
+                    TipBullet("Fotos da Empresa:", "Mostre a fachada (essencial para clientes encontrarem fisicamente), o interior (traz confiança) e a equipe.")
+                    TipBullet("Frequência Visual:", "Suba de 3 a 5 fotos de boa qualidade por semana.")
+                    TipBullet("Postagens Frequentes:", "2 a 3 por semana. Publique promoções, bastidores ou depoimentos.")
+                }
+            }
+
+            item {
+                ExpandableTipCard(
+                    title = "5. SEO Local",
+                    icon = Icons.Default.Search
+                ) {
+                    TipBullet("Palavras-chave:", "Inclua seu serviço principal e sua cidade/bairro nas postagens e respostas a avaliações de forma totalmente natural.")
+                    TipBullet("Consistência NAP:", "Nome, Endereço e Telefone devem ser *exatamente iguais* no seu site formatação e no Google.")
+                }
+            }
+
+            item {
+                ExpandableTipCard(
+                    title = "6. Erros Restritivos (Evite!)",
+                    icon = Icons.Default.Warning
+                ) {
+                    TipBullet("Falsificações:", "Se comprar avaliações falsas, você corre grande risco de ter o perfil derrubado ou sua visibilidade banida.")
+                    TipBullet("Spam de Palavras-chave:", "A prática de encher o título com serviços (ex: 'João Mecânico Troca de Óleo Anápolis') diminui a autoridade.")
+                    TipBullet("Desatualização:", "Lojas fechadas com horário como 'aberto' enfurecem os usuários, gerando notas negativas.")
+                }
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(12.dp))
                             Text(
-                                text = "${detailIndex + 1}",
-                                style = MaterialTheme.typography.headlineLarge,
+                                "A Fórmula do Crescimento",
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
-                        Spacer(Modifier.height(32.dp))
-                        Text(
-                            text = detail.first,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
                         Spacer(Modifier.height(16.dp))
                         Text(
-                            text = detail.second,
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            "Top Ranking = Perfil Completo + Avaliações Constantes + Fotos Frequentes + Engajamento Natural.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
+                Spacer(Modifier.height(24.dp))
             }
         }
+    }
+}
 
-        Spacer(Modifier.height(24.dp))
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ExpandableTipCard(
+    title: String,
+    icon: ImageVector,
+    content: @Composable () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
 
-        // Pager indicators
-        Row(
-            modifier = Modifier.wrapContentWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            repeat(pagerState.pageCount) { index ->
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        onClick = { expanded = !expanded }
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(if (pagerState.currentPage == index) 12.dp else 8.dp)
-                        .background(
-                            if (pagerState.currentPage == index) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceVariant,
-                            CircleShape
-                        )
+                        .size(40.dp)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Spacer(Modifier.width(16.dp))
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
 
-        Spacer(Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                if (pagerState.currentPage < pagerState.pageCount - 1) {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                    }
-                } else {
-                    onComplete()
+            AnimatedVisibility(visible = expanded) {
+                Column(
+                    modifier = Modifier.padding(top = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    content()
                 }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp)
-                .height(56.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text(
-                text = if (pagerState.currentPage < pagerState.pageCount - 1) "Próximo" else "Concluir Lição",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            }
         }
     }
 }
 
+@Composable
+private fun TipBullet(title: String, description: String) {
+    Row(verticalAlignment = Alignment.Top) {
+        Text(
+            "•",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(end = 8.dp)
+        )
+        Text(
+            text = buildAnnotatedString {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append("$title ")
+                }
+                append(description)
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
