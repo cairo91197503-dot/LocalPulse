@@ -48,7 +48,7 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-    // build trigger
+    // build trigger 2
 
     buildFeatures {
         compose = true
